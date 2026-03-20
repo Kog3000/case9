@@ -1,13 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import Header from './Header'
 import './App.css'
+import Filters from './Filters'
+import OrdersSection from './OrdersSection'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <p>Пока пусто</p>
+    <div className="app-container">
+      <Header />
+      <div className="content-wrapper">
+        <Filters />
+        <OrdersSection />
+      </div>
+    </div>
   )
 }
 

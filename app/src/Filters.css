@@ -1,0 +1,74 @@
+.filterContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px; /* Расстояние между блоками инпутов (увеличено с 12px) */
+}
+
+/* Стили для каждого блока с инпутом */
+.filterContainer > div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Расстояние между текстом (p) и инпутом */
+}
+
+.dateInput, 
+.operationInput {
+    width: 300px;
+    height: 46px;
+    border-radius: 10px;
+    border: #D4D4D4 solid 1px;
+    padding-left: 20.5px;
+    font-size: 14px;
+    box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
+    transition: all 0.3s ease;
+}
+
+.dateInput:hover,
+.operationInput:hover {
+    border-color: #342BE2; 
+    transform: translateY(-1px);
+    /* box-shadow: 0 0 5px rgba(52, 43, 226, 0.2); // Добавляем легкую тень */
+}
+
+.dateInput:focus,
+.operationInput:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Для текста-заголовка */
+.filterContainer p {
+    margin: 0; /* Убираем отступы у p по умолчанию */
+    font-size: 13px;
+    font-weight: 500;
+    color: #424242;
+    transition: color 0.3s ease;
+}
+
+.button {
+    padding: 12.15px;
+    margin-top: 13px;
+    border: none;
+    width: 300px;
+    height: 46px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    color: #fff;
+    background-color: #342BE2;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.button:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+.button.active {
+    background: #3e6ae1;
+}

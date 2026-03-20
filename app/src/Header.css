@@ -1,0 +1,63 @@
+.headerText {
+    font-size: 17px;
+    color: #424242;
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Выравнивает .compactLeft и .compactRight по центру */
+    padding-top: 40px;
+    background-color: #F0EFF9;
+}
+
+.point {
+    color: #000;
+    text-decoration: underline;
+}
+
+.compactLeft,
+.compactRight {
+    display: flex;
+    align-items: center; /* Выравнивает внутренние элементы по центру */
+    gap: 12px; /* Добавляет отступы между элементами (опционально) */
+}
+
+.compactLeft {
+    /* Если нужно выровнять левую группу по левому краю */
+    justify-content: flex-start;
+}
+
+.compactRight {
+    /* Если нужно выровнять правую группу по правому краю */
+    justify-content: flex-end;
+}
+
+.leftTwo {
+    padding-left: 60px;
+}
+
+.rightOne {
+    padding-right: 75px;
+}
+
+.bellIcon {
+    padding-right: 22px;
+}
+
+.avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #342BE2, #FFDB58);
+    padding: 1.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: block;
+    object-fit: cover;
+    background: white;
+}
