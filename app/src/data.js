@@ -1,14 +1,17 @@
 export const roles = [
     {
         name: 'operator',
+        login: 'login_operator',
         displayName: 'Оператор ПВЗ'
     },
     {
         name: 'supervizer',
+        login: 'login_supervizer',
         displayName: 'Супервайзер'
     },
     {
         name: 'analyst',
+        login: 'login_analyst',
         displayName: 'Аналитик'
     }
 ]
