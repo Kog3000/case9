@@ -44,3 +44,34 @@ export const orders = [
         article: 333456789
     }
 ]
+
+export const barInfo = [
+    {
+        day: 'Пн',
+        value: 21
+    },
+    {
+        day: 'Вт',
+        value: 55
+    },
+    {
+        day: 'Ср',
+        value: 15
+    },
+    {
+        day: 'Чт',
+        value: 80
+    },
+    {
+        day: 'Пт',
+        value: 35
+    },
+    {
+        day: 'Сб',
+        value: 62
+    },
+    {
+        day: 'Вс',
+        value: 82
+    }
+]

@@ -25,7 +25,7 @@
 
 .content-wrapper > div:last-child {
     flex: 1;
-    min-width: 0;
+    min-width: 310px;
 }
 
 
