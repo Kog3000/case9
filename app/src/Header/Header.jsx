@@ -1,7 +1,7 @@
 import './Header.css'
 import { points, defaultData } from '../data.js'
 import { useState, useEffect } from "react"
-import bellIcon from '/assets/bell_icon.svg'
+import bellIcon from '../../assets/bell_icon.svg'
 
 export default function Header({ onPageChange, currentPage, userName, userData, onLogout }) {
     const [now, setNow] = useState(new Date())
@@ -21,30 +21,36 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
         if (onPageChange) {
             if (userName === 'supervizer') {
                 onPageChange('supervizer')
+            } else if (userName === 'analyst') {
+                onPageChange('analyst')
             } else {
                 onPageChange('main')
             }
         }
     }
 
-    // Получаем отображаемое имя пользователя
     const displayName = userData?.displayName || localStorage.getItem('userDisplayName') || 'Пользователь'
     
-    // Получаем роль для отображения
-    const roleDisplay = userName === 'supervizer' ? 'Супервайзер' : 'Оператор'
+    // Определяем отображаемую роль
+    let roleDisplay = 'Оператор'
+    if (userName === 'supervizer') {
+        roleDisplay = 'Супервайзер'
+    } else if (userName === 'analyst') {
+        roleDisplay = 'Аналитик'
+    }
+    
+    const currentUserName = localStorage.getItem('userName') || userName
 
     return(
         <header className='headerText'>
-            {localStorage.getItem('userName') === 'operator' ?
-                <div className="compactLeft"> 
+            <div className="compactLeft">
+                {currentUserName === 'operator' && (
                     <span className='point' onClick={handleLogoClick}>
                         {points[0]}
                     </span>
-                    <span className='leftTwo'>Смена: 10.00–22.00</span>
-                </div> :
-                <div className="compactLeft2"> 
-                    <span className='leftTwo'>Смена: 10.00–22.00</span>
-                </div>}
+                )}
+                <span className='leftTwo'>Смена: 10.00–22.00</span>
+            </div>
             <div className="compactRight">
                 <span className='rightOne'>{now.toLocaleTimeString()}</span>
                 <div className='bellIcon'>
@@ -52,11 +58,14 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                 </div>
                 <div className="user-info-wrapper" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                     <div className='avatar'>
-                        <img className='image' src={userData?.avatar || defaultData.image} />
+                        <img className='image' src={userData?.avatar || defaultData.image} alt="avatar" />
                     </div>
                     <div className="user-details">
                         <div className="user-name">
                             {displayName}
+                        </div>
+                        <div className="user-role">
+                            {roleDisplay}
                         </div>
                     </div>
                 </div>

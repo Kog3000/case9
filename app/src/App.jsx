@@ -5,6 +5,8 @@ import './App.css'
 import OperatorPage from './OperatorPage/OperatorPage'
 import RegisterPage from './RegisterPage/RegisterPage'
 import SupervizerPage from './SupervizerPage'
+import AnalystPage from './AnalystPage'
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState('register')
@@ -21,9 +23,11 @@ function App() {
       setIsAuthenticated(true)
       setUserName(savedUserName)
       setUserData(JSON.parse(savedUserData))
-      
+
       if (savedUserName === 'supervizer') {
         setCurrentPage('supervizer')
+      } else if (savedUserName === 'analyst') {
+        setCurrentPage('analyst')
       } else {
         setCurrentPage('main')
       }
@@ -50,6 +54,8 @@ function App() {
     
     if (user.name === 'supervizer') {
       setCurrentPage('supervizer')
+    } else if (user.name === 'analyst') {
+      setCurrentPage('analyst')
     } else {
       setCurrentPage('main')
     }
@@ -79,12 +85,20 @@ function App() {
         return <OperatorPage onLogout={handleLogout} userData={userData} />
       case 'supervizer':
         return <SupervizerPage onLogout={handleLogout} userData={userData} />
+      case 'analyst':
+        return <AnalystPage onLogout={handleLogout} userData={userData} />
       case 'profile':
         return (
           <ProfilePage 
             onBack={() => {
               console.log('Возврат на главную')
-              handlePageChange(userName === 'supervizer' ? 'supervizer' : 'main')
+              if (userName === 'supervizer') {
+                handlePageChange('supervizer')
+              } else if (userName === 'analyst') {
+                handlePageChange('analyst')
+              } else {
+                handlePageChange('main')
+              }
             }} 
             onRegister={() => handlePageChange('register')}
             userData={userData}
