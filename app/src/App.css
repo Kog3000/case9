@@ -9,23 +9,5 @@
     background-color: #F0EFF9;
 }
 
-.content-wrapper {
-    display: flex;
-    gap: 24px;
-    margin: 0 auto; /* Центрирует весь контент */
-    margin-top: 35px;
-}
-
-/* Если у Filters нет своего класса-обертки, добавьте его */
-/* Или можно стилизовать напрямую */
-.content-wrapper > div:first-child {
-    flex-shrink: 0;
-    width: 340px;
-}
-
-.content-wrapper > div:last-child {
-    flex: 1;
-    min-width: 310px;
-}
 
 

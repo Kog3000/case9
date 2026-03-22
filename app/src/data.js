@@ -1,17 +1,29 @@
 export const roles = [
     {
-        name: 'operator',
+        id: 1, 
         login: 'login_operator',
+        password: '12345678',
+        name: 'operator', 
+        email: 'operator@example.com',
+        avatar: '',
         displayName: 'Оператор ПВЗ'
     },
     {
-        name: 'supervizer',
+        id: 2, 
         login: 'login_supervizer',
+        password: '12345678',
+        name: 'supervizer',
+        email: 'supervizer@example.com',
+        avatar: 'https://i.pinimg.com/originals/a3/5a/af/a35aaf8eefb85a1446e49a0494ea69e2.jpg?nii=t',
         displayName: 'Супервайзер'
     },
     {
-        name: 'analyst',
+        id: 3, 
         login: 'login_analyst',
+        password: '12345678',
+        name: 'analyst',
+        email: 'analyst@example.com',
+        avatar: 'https://i.pinimg.com/736x/b0/f2/59/b0f259fb6529bb1c1f7421384a55eac6.jpg',
         displayName: 'Аналитик'
     }
 ]
@@ -78,3 +90,7 @@ export const barInfo = [
         value: 82
     }
 ]
+
+export const defaultData = {
+    image: 'https://avatars.mds.yandex.net/get-yapic/51169/7Zb7FYDemTULMCabgpZSOUNVRmE-1/orig'
+}

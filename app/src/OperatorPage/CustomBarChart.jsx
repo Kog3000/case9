@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import './CustomBarChart.css'
-import {barInfo} from './data.js'
+import {barInfo} from '../data.js'
 
 export default function CustomBarChart() {
   const getColorByValue = (value) => {
