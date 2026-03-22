@@ -9,45 +9,153 @@ export default function OrdersSection({ filters }) {
     const parseDate = (dateStr) => {
         if (!dateStr) return null
         const [day, month, year] = dateStr.split('.')
-        return new Date(year, month - 1, day)
+        const date = new Date(year, month - 1, day)
+        return isNaN(date.getTime()) ? null : date
+    }
+
+    // Функция нормализации текста (замена ё на е, приведение к нижнему регистру)
+    const normalizeText = (text) => {
+        if (!text) return ''
+        return text.toLowerCase()
+            .replace(/ё/g, 'е')
+            .replace(/\s+/g, ' ')
+            .trim()
+    }
+
+    // Функция для получения статуса по тексту
+    const getStatusFromText = (text) => {
+        const normalized = normalizeText(text)
+        
+        // Проверка на "принять" и его варианты
+        if (normalized === 'принять' || 
+            normalized === 'прием' || 
+            normalized === 'принять на склад' ||
+            normalized === 'прием на склад' ||
+            normalized.includes('принять') ||
+            normalized.includes('прием')) {
+            return 1
+        }
+        
+        // Проверка на "выдать" и его варианты
+        if (normalized === 'выдать' || 
+            normalized === 'выдать клиенту' ||
+            normalized.includes('выдать')) {
+            return 2
+        }
+        
+        // Проверка на "вернуть" и его варианты
+        if (normalized === 'вернуть' || 
+            normalized === 'вернуть на склад' ||
+            normalized.includes('вернуть')) {
+            return 3
+        }
+        
+        // Проверка на "склад" - возвращает массив статусов 1 и 3
+        if (normalized.includes('склад')) {
+            return [1, 3]
+        }
+        
+        return null
     }
 
     useEffect(() => {
+        console.log('Получены фильтры в OrdersSection:', filters)
+        
         let filtered = [...orders]
 
-        // Фильтрация по дате
-        if (filters.startDate && filters.endDate) {
-            const start = parseDate(filters.startDate)
-            const end = parseDate(filters.endDate)
+        // ========== ФИЛЬТРАЦИЯ ПО ДАТЕ ==========
+        const hasStartDate = filters.startDate && filters.startDate.trim() !== ''
+        const hasEndDate = filters.endDate && filters.endDate.trim() !== ''
+        
+        if (hasStartDate || hasEndDate) {
+            const start = hasStartDate ? parseDate(filters.startDate) : null
+            const end = hasEndDate ? parseDate(filters.endDate) : null
             
             filtered = filtered.filter(order => {
                 if (!order.date) return false
                 const orderDate = parseDate(order.date)
-                return orderDate >= start && orderDate <= end
-            })
-        }
-
-        // Фильтрация по типу операции (status)
-        if (filters.operationType && filters.operationType.trim() !== '') {
-            filtered = filtered.filter(order => {
-                let statusText = ''
-                if (order.status === 1) statusText = 'Приём на склад'
-                else if (order.status === 2) statusText = 'Выдать клиенту'
-                else if (order.status === 3) statusText = 'Вернуть на склад'
+                if (!orderDate) return false
                 
-                return statusText.toLowerCase().includes(filters.operationType.toLowerCase())
+                if (start && end) {
+                    return orderDate >= start && orderDate <= end
+                }
+                if (start && !end) {
+                    return orderDate >= start
+                }
+                if (!start && end) {
+                    return orderDate <= end
+                }
+                return true
             })
+            console.log('После фильтрации по дате:', filtered.length)
         }
 
+        // ========== ФИЛЬТРАЦИЯ ПО ТИПУ ОПЕРАЦИИ ==========
+        const hasOperationType = filters.operationType && 
+                                  filters.operationType.trim() !== '' && 
+                                  filters.operationType !== 'Все'
+        
+        if (hasOperationType) {
+            const filterStatus = getStatusFromText(filters.operationType)
+            
+            if (filterStatus) {
+                if (Array.isArray(filterStatus)) {
+                    // Если несколько статусов (например, "склад")
+                    filtered = filtered.filter(order => filterStatus.includes(order.status))
+                    console.log('Фильтрация по нескольким статусам:', filterStatus)
+                } else {
+                    // Одиночный статус
+                    filtered = filtered.filter(order => order.status === filterStatus)
+                    console.log('Фильтрация по статусу:', filterStatus)
+                }
+            } else {
+                // Если не распознано, пробуем частичное совпадение
+                const normalizedFilter = normalizeText(filters.operationType)
+                filtered = filtered.filter(order => {
+                    let statusText = ''
+                    if (order.status === 1) statusText = 'Приём на склад'
+                    else if (order.status === 2) statusText = 'Выдать клиенту'
+                    else if (order.status === 3) statusText = 'Вернуть на склад'
+                    
+                    const normalizedStatus = normalizeText(statusText)
+                    return normalizedStatus.includes(normalizedFilter)
+                })
+            }
+            console.log('После фильтрации по операции:', filtered.length)
+        }
+
+        console.log('Всего отфильтровано заказов:', filtered.length)
         setFilteredOrders(filtered)
+        
     }, [filters])
+
+    // Определяем, какие фильтры активны
+    const hasDateFilter = (filters.startDate && filters.startDate.trim() !== '') || 
+                          (filters.endDate && filters.endDate.trim() !== '')
+    const hasOperationFilter = filters.operationType && 
+                               filters.operationType.trim() !== '' && 
+                               filters.operationType !== 'Все'
 
     return(
         <section className='mainBody'>
             <div className="orders-header">
                 <h3>Заказы ({filteredOrders.length})</h3>
-                {(filters.startDate || filters.endDate || filters.operationType) && (
-                    <span className="filter-badge">Фильтры активны</span>
+                {(hasDateFilter || hasOperationFilter) && (
+                    <div className="filter-info">
+                        <span className="filter-badge">Фильтры активны</span>
+                        <div className="filter-details">
+                            {hasDateFilter && (
+                                <span className="filter-detail">
+                                    {filters.startDate || '...'} - {filters.endDate || '...'}
+                                </span>
+                            )}
+                            {hasOperationFilter && (
+                                <span className="filter-detail">
+                                    {filters.operationType}
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 )}
             </div>
             <ul className='ordersList'>

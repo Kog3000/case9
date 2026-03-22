@@ -4,13 +4,13 @@ import InputCase from '../../InputCase/InputCase'
 import './Filters.css'
 
 export default function Filters({ onFilterChange }) {
-    const [dateRange, setDateRange] = useState('')  // Храним строку целиком
+    const [dateRange, setDateRange] = useState('')
     const [operationType, setOperationType] = useState('')
 
     const handleDateChange = (e) => {
         const value = e.target.value
         console.log('Введена дата:', value)
-        setDateRange(value)  // Просто сохраняем всю строку
+        setDateRange(value)
     }
 
     const handleOperationChange = (e) => {
@@ -37,7 +37,7 @@ export default function Filters({ onFilterChange }) {
         onFilterChange({
             startDate,
             endDate,
-            operationType
+            operationType  // может быть пустой строкой ''
         })
     }
 
@@ -60,8 +60,8 @@ export default function Filters({ onFilterChange }) {
                 onChange={handleDateChange}
             />
             <InputCase 
-                title='Тип операции' 
-                content='Приём на склад'
+                title='Тип операции (принять / выдать / вернуть)' 
+                content='Все'
                 value={operationType}
                 onChange={handleOperationChange}
             />
