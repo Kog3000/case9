@@ -1,10 +1,10 @@
 import './InputCase.css'
 
-export default function InputCase({title, content}) {
+export default function InputCase({title, content, onChange, value}) {
     return(
         <div>
             <p>{title}</p>
-            <input placeholder={content}></input>
+            <input onChange={onChange} value={value || ''} placeholder={content}></input>
         </div>
     )
 }

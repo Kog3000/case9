@@ -5,3 +5,9 @@
     gap: 10px; /* Расстояние между блоками инпутов (увеличено с 12px) */
 }
 
+.actions {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}

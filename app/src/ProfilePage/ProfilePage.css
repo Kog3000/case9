@@ -43,7 +43,6 @@
   display: block;
 }
 
-/* Информация о пользователе (справа от аватара, в столбик) */
 .user-info {
   flex: 1;
   display: flex;
@@ -67,7 +66,6 @@
   line-height: 1.3;
 }
 
-/* Меню настроек */
 .menu-section {
   margin-bottom: 25px;
 }
@@ -103,7 +101,6 @@
   margin-left: 12px;
 }
 
-/* Кнопки действий */
 .actions {
   display: flex;
   flex-direction: column;
@@ -121,50 +118,4 @@
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
-}
-
-.back-button {
-    padding: 12.15px;
-    margin-top: 13px;
-    border: none;
-    width: 100%;
-    height: 46px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: bold;
-    color: #fff;
-    background-color: #342BE2;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-.back-button:hover {
-    opacity: 0.8;
-    transform: translateY(-1px);
-}
-
-.back-button.active {
-    background: #3e6ae1;
-}
-
-.logout-button {
-    padding: 12.15px;
-    border: none;
-    width: 100%;
-    height: 46px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: bold;
-    color: #342BE2;
-    background-color: #fff;
-    border: #342BE2 solid 1px;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-.logout-button:hover {
-    background-color: #f2f1ff;
-    transform: translateY(-2px);
 }

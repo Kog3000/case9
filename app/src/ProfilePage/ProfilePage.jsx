@@ -3,6 +3,7 @@ import { roles, defaultData } from '../data.js'
 import bellIcon from '/assets/bellp_icon.svg'
 import calendarIcon from '/assets/calendar_icon.svg'
 import settingsIcon from '/assets/settings_icon.svg'
+import Button from '../Button/Button.jsx'
 
 export default function ProfilePage({ onBack, onRegister, userData, onLogout }) {
     const displayName = userData?.displayName || localStorage.getItem('userDisplayName') || 'Пользователь'
@@ -61,8 +62,8 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout }) 
                 </div>
                 
                 <div className="actions">
-                    <button onClick={handleBack} className="back-button">Назад</button>
-                    <button onClick={handleLogout} className="logout-button">Выйти</button>
+                    <Button onClick={handleBack} content='Назад' lengthBtn='large'></Button>
+                    <Button onClick={handleLogout} content='Выйти' variant='empty' lengthBtn='large'></Button>
                 </div>
             </div>
         </div>

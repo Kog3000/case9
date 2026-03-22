@@ -102,8 +102,7 @@ export default function RegisterPage({ onBack, onRegister, onLoginSuccess }) {
                 <button 
                     onClick={handleLogin} 
                     className="login-button"
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     {isLoading ? 'Вход...' : 'Войти в систему'}
                 </button>
                 
@@ -114,8 +113,7 @@ export default function RegisterPage({ onBack, onRegister, onLoginSuccess }) {
                 <button 
                     onClick={onRegister} 
                     className="register-button"
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     Зарегистрироваться
                 </button>
             </div>
