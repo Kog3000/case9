@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import './CustomBarChart.css'
-import {barInfo} from '../data.js'
+import {barInfo} from '../../data.js'
+import Button from '../../Button/Button.jsx'
 
 export default function CustomBarChart() {
   const getColorByValue = (value) => {
@@ -77,7 +78,9 @@ export default function CustomBarChart() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <button className='buttonStat'>Отчёт в CSV</button>
+      <div className='btn'>
+        <Button content='Отчёт в CSV'></Button>
+      </div>
     </div>
   )
 }

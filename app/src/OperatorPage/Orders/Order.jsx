@@ -1,6 +1,6 @@
 import './Order.css'
 
-export default function Order({title, status, price, article}) {
+export default function Order({title, status, price, article, date}) {
     let buttonText = 'Принять на склад'
     let titleClass = 'productTitle1'
     let priceClass = 'productPrice1'
@@ -20,12 +20,13 @@ export default function Order({title, status, price, article}) {
 
     return(
         <li>
-            <div className="productInfo">
+            <div className='productInfo'>
                 <span className={titleClass}>{title}</span>
-                <span className="productArticle">(№{article})</span>
+                <span className='productArticle'>(№{article})</span>
+                <span className='date'>{date}</span>
                 <span className={priceClass}>{price} руб.</span>
             </div>
-            <button className="productButton">{buttonText}</button>
+            <button className='productButton'>{buttonText}</button>
         </li>
     )
 }

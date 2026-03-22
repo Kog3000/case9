@@ -1,7 +1,7 @@
-import CustomBarChart from "./CustomBarChart";
-import Filters from "./Filters";
-import OrdersSection from "./OrdersSection";
+import CustomBarChart from "./CustomBar/CustomBarChart";
+import OrdersSection from "./Orders/OrdersSection";
 import './OperatorPage.css'
+import Filters from "./Filters/Filters";
 
 
 export default function OperatorPage() {

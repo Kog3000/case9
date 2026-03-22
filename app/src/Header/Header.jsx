@@ -1,6 +1,6 @@
 import './Header.css'
 import { points, defaultData } from '../data.js'
-import { useState, useEffect } from "react"
+import { useState, useEffect } from 'react'
 import bellIcon from '../../assets/bell_icon.svg'
 
 export default function Header({ onPageChange, currentPage, userName, userData, onLogout }) {
@@ -29,9 +29,12 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
         }
     }
 
+    const handleNoticeClick = () => {
+        console.log('Уведомлений нет')
+    }
+
     const displayName = userData?.displayName || localStorage.getItem('userDisplayName') || 'Пользователь'
     
-    // Определяем отображаемую роль
     let roleDisplay = 'Оператор'
     if (userName === 'supervizer') {
         roleDisplay = 'Супервайзер'
@@ -43,28 +46,30 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
 
     return(
         <header className='headerText'>
-            <div className="compactLeft">
-                {currentUserName === 'operator' && (
+            {
+            currentUserName === 'operator' ? 
+                <div className='compactLeft'>
                     <span className='point' onClick={handleLogoClick}>
                         {points[0]}
                     </span>
-                )}
-                <span className='leftTwo'>Смена: 10.00–22.00</span>
-            </div>
-            <div className="compactRight">
+                    <span className='leftTwo'>Смена: 10.00–22.00</span>
+                </div> : 
+                <span className='leftTwo2'>Смена: 10.00–22.00</span>
+            }
+            <div className='compactRight'>
                 <span className='rightOne'>{now.toLocaleTimeString()}</span>
                 <div className='bellIcon'>
-                    <img className='bellImage' src={bellIcon} alt="bell" />
+                    <img onClick={handleNoticeClick} className='bellImage' src={bellIcon} alt='bell' />
                 </div>
-                <div className="user-info-wrapper" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
+                <div className='user-info-wrapper' onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                     <div className='avatar'>
-                        <img className='image' src={userData?.avatar || defaultData.image} alt="avatar" />
+                        <img className='image' src={userData?.avatar || defaultData.image} alt='avatar' />
                     </div>
-                    <div className="user-details">
-                        <div className="user-name">
+                    <div className='user-details'>
+                        <div className='user-name'>
                             {displayName}
                         </div>
-                        <div className="user-role">
+                        <div className='user-role'>
                             {roleDisplay}
                         </div>
                     </div>
