@@ -47,12 +47,12 @@ export default function OrdersSection({ filters }) {
         if (normalized === 'вернуть' || 
             normalized === 'вернуть на склад' ||
             normalized.includes('вернуть')) {
-            return 3
+            return 2
         }
         
         // Проверка на "склад" - возвращает массив статусов 1 и 3
         if (normalized.includes('склад')) {
-            return [1, 3]
+            return [1, 2]
         }
         
         return null
@@ -114,8 +114,8 @@ export default function OrdersSection({ filters }) {
                 filtered = filtered.filter(order => {
                     let statusText = ''
                     if (order.status === 1) statusText = 'Приём на склад'
-                    else if (order.status === 2) statusText = 'Выдать клиенту'
-                    else if (order.status === 3) statusText = 'Вернуть на склад'
+                    else if (order.status === 2 || order.status === 3) statusText = 'Выдать клиенту'
+                    else if (order.status === 3 || order.status === 2) statusText = 'Вернуть на склад'
                     
                     const normalizedStatus = normalizeText(statusText)
                     return normalizedStatus.includes(normalizedFilter)

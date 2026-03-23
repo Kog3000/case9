@@ -14,8 +14,8 @@ export default function Order({title, status, price, article, date}) {
         priceClass = 'productPrice2'
     } else if (status === 3) {
         buttonText = 'Вернуть на склад'
-        titleClass = 'productTitle3'
-        priceClass = 'productPrice3'
+        // titleClass = 'productTitle3'
+        // priceClass = 'productPrice3'
     }
 
     return(
@@ -26,7 +26,13 @@ export default function Order({title, status, price, article, date}) {
                 <span className='date'>{date}</span>
                 <span className={priceClass}>{price} руб.</span>
             </div>
-            <button className='productButton'>{buttonText}</button>
+            {status !== 1 ? 
+            <div className='buttons'>
+            <button className='productButton first'>Выдать клиенту</button>
+            <button className='productButton second'>Вернуть на склад</button>
+            </div> :
+        <button className='productButton'>Принять на склад</button>}
+            
         </li>
     )
 }

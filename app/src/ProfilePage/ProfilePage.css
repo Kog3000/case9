@@ -225,8 +225,8 @@
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 16px;
+  gap: 25px;
+  padding: 20px 18px;
   background: #F0EFF9;
   border-radius: 12px;
   margin-bottom: 8px;

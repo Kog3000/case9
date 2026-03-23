@@ -82,12 +82,12 @@ li:hover {
 
 /* Кнопка */
 .productButton {
-    padding: 10px 20px;
+    padding: 8px 20px;
     background-color: #424242;
     color: white;
     border: none;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -104,4 +104,23 @@ li:hover {
 
 .productButton:active {
     transform: translateY(0);
+}
+
+.productButton.first {
+    margin-right: 10px;
+}
+
+.productButton.second {
+    padding: 8px 20px;
+    color: #424242;
+    background-color: transparent;
+    border: #424242 solid 1.5px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: fit-content;
+    min-width: 126px;
+    margin-bottom: 5px;
 }
