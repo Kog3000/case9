@@ -1,6 +1,8 @@
 import './ProfilePage.css'
 import { defaultData } from '../data.js'
 
+import { useState, useRef } from 'react'
+
 import bellIcon from '/assets/bellp_icon.svg'
 import cameraIcon from '/assets/camera_icon.svg'
 import penIcon from '/assets/pen_icon.svg'
@@ -8,7 +10,7 @@ import calendarIcon from '/assets/calendar_icon.svg'
 import settingsIcon from '/assets/settings_icon.svg'
 import Button from '../Button/Button.jsx'
 
-export default function ProfilePage({ onBack, userData, onLogout }) {
+export default function ProfilePage({ onBack, onRegister, userData, onLogout }) {
     const [isEditing, setIsEditing] = useState(false)
     const [editedName, setEditedName] = useState('')
     const [editedEmail, setEditedEmail] = useState('')
