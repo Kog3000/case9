@@ -9,7 +9,7 @@ import AnalystPage from './AnalystPage'
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('operator')
+  const [currentPage, setCurrentPage] = useState('register')
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userName, setUserName] = useState(null)
   const [userData, setUserData] = useState(null)
