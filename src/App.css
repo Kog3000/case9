@@ -1,0 +1,13 @@
+#root {
+  max-width: 1320px;
+  margin: 0 auto;
+  /* padding: 2rem; */
+}
+
+.app-container {
+    min-height: 100vh;
+    background-color: #F0EFF9;
+}
+
+
+

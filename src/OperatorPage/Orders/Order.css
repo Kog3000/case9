@@ -1,0 +1,138 @@
+
+/* Элемент списка */
+li {
+    width: 596px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    background-color: #ffffff;
+    border: 1px solid #eef0f5;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+}
+
+/* Hover эффект */
+li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    border-color: #342BE2;
+}
+
+/* Первая строка - все элементы в одну строку */
+.productInfo {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+/* Артикул */
+.productArticle, .date {
+    font-size: 13px;
+    color: #8b8f9e;
+    font-weight: 400;
+}
+
+/* Название */
+.productTitle1 {
+    font-size: 17px;
+    font-weight: 500;
+    color: #342BE2;
+}
+
+.productTitle2 {
+    font-size: 17px;
+    font-weight: 500;
+    color: #424242;
+}
+
+.productTitle3 {
+    font-size: 17px;
+    font-weight: 500;
+    color: #AF1F1F;
+}
+
+/* Цена - будет справа */
+.productPrice1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #342BE2;
+    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    white-space: nowrap;
+}
+
+.productPrice2 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #424242;
+    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    white-space: nowrap;
+}
+
+.productPrice3 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #AF1F1F;
+    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    white-space: nowrap;
+}
+
+/* Кнопка */
+.productButton {
+    padding: 8px 20px;
+    background-color: #424242;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: fit-content;
+    min-width: 126px;
+    margin-bottom: 5px;
+}
+
+.productButton:hover {
+    background-color: #474747;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(69, 68, 76, 0.3);
+}
+
+.productButton:active {
+    transform: translateY(0);
+}
+
+.productButton.first {
+    margin-right: 10px;
+}
+
+.productButton.second {
+    padding: 8px 20px;
+    color: #424242;
+    background-color: transparent;
+    border: #424242 solid 1.5px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: fit-content;
+    min-width: 126px;
+    margin-bottom: 5px;
+}
+
+.processed-label {
+  margin-left: 10px;
+  padding: 4px 10px;
+  background: #e6f4ea;
+  color: #2e7d32;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+
+}
