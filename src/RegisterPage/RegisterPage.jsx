@@ -1,71 +1,71 @@
-import { useState } from 'react'
-import { login, getUserFromToken } from '../api/auth'
-import { useAuth } from '../Context/AuthContext'
-import './RegisterPage.css'
+import { useState } from 'react';
+import { login } from '../Api/auth';
+import { useAuth } from '../Context/AuthContext';
+import './RegisterPage.css';
 
-export default function RegisterPage({ onBack, onRegister, onLoginSuccess }) {
-    const [loginEmail, setLoginEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const [isLoading, setIsLoading] = useState(false)
-    const { loginUser } = useAuth()
+export default function RegisterPage({ onRegister, onLoginSuccess }) {
+    const [loginEmail, setLoginEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const { loginUser } = useAuth();
 
     const handleLoginChange = (e) => {
-        setLoginEmail(e.target.value)
-        setError('')
-    }
+        setLoginEmail(e.target.value);
+        setError('');
+    };
 
     const handlePasswordChange = (e) => {
-        setPassword(e.target.value)
-        setError('')
-    }
+        setPassword(e.target.value);
+        setError('');
+    };
 
     const handleLogin = async () => {
         if (!loginEmail.trim()) {
-            setError('Введите email')
-            return
+            setError('Введите email');
+            return;
         }
         
         if (!password.trim()) {
-            setError('Введите пароль')
-            return
+            setError('Введите пароль');
+            return;
         }
 
-        setIsLoading(true)
-        setError('')
+        setIsLoading(true);
+        setError('');
 
         try {
             // Отправляем запрос на /users/token
-            await login(loginEmail, password)
+            const response = await login(loginEmail, password);
             
-            // Получаем данные пользователя из токена
-            const userData = getUserFromToken()
+            // Получаем данные пользователя из ответа (теперь с pvz)
+            const userData = response.user;
             if (!userData) {
-                throw new Error('Не удалось получить данные пользователя')
+                throw new Error('Не удалось получить данные пользователя');
             }
 
             // Обновляем контекст аутентификации
-            loginUser(userData)
+            loginUser(userData);
             
             // Вызываем колбэк, чтобы родительский компонент обновил состояние
             if (onLoginSuccess) {
-                onLoginSuccess(userData)
+                onLoginSuccess(userData);
             }
         } catch (err) {
-            console.error('Ошибка входа:', err)
-            setError(err.response?.data?.detail || 'Неверный email или пароль')
+            console.error('Ошибка входа:', err);
+            setError(err.response?.data?.detail || 'Неверный email или пароль');
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
-            handleLogin()
+            handleLogin();
         }
-    }
+    };
 
-    return(
+    return (
         <div className="register-page">
             <div className="register-card">
                 <h2 className="register-title">Вход в систему</h2>
@@ -122,5 +122,5 @@ export default function RegisterPage({ onBack, onRegister, onLoginSuccess }) {
                 </button>
             </div>
         </div>
-    )
+    );
 }

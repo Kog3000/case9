@@ -1,5 +1,5 @@
 import './Header.css'
-import { points, defaultData, notifications } from '../data.js'
+import { defaultData, notifications } from '../data.js'
 import { useState, useEffect, useRef } from 'react'
 import bellIcon from '../../assets/bell_icon.svg'
 
@@ -40,9 +40,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
 
     const handleLogoClick = () => {
         if (onPageChange) {
-            if (userName === 'supervizer') {
-                onPageChange('supervizer')
-            } else if (userName === 'analyst') {
+            if (userData?.role === 'supervisor') {
+                onPageChange('supervisor')
+            } else if (userData?.role === 'analyst') {
                 onPageChange('analyst')
             } else {
                 onPageChange('main')
@@ -55,7 +55,6 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
     }
 
     const handleNotificationClick = (id) => {
-        // Отмечаем уведомление как прочитанное
         setNotificationsList(prev => 
             prev.map(notif => 
                 notif.id === id ? { ...notif, read: true } : notif
@@ -78,26 +77,32 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
     const displayName = userData?.displayName || localStorage.getItem('userDisplayName') || 'Пользователь'
     
     let roleDisplay = 'Оператор'
-    if (userName === 'supervizer') {
+    if (userData?.role === 'supervisor') {
         roleDisplay = 'Супервайзер'
-    } else if (userName === 'analyst') {
+    } else if (userData?.role === 'analyst') {
         roleDisplay = 'Аналитик'
     }
     
-    const currentUserName = localStorage.getItem('userName') || userName
+    // Определяем, оператор ли пользователь
+    const isOperator = userData?.role === 'operator'
+    const pvzAddress = userData?.pvz?.address || 'ПВЗ №?'
+    const workStart = userData?.pvz?.work_start || '10:00'
+    const workEnd = userData?.pvz?.work_end || '22:00'
 
     return(
         <header className='headerText'>
-            {
-            currentUserName === 'operator' ? 
+            {isOperator ? (
                 <div className='compactLeft'>
                     <span className='point' onClick={handleLogoClick}>
-                        {points[0]}
+                        {pvzAddress}
                     </span>
-                    <span className='leftTwo'>Смена: 10.00–22.00</span>
-                </div> : 
-                <span className='leftTwo2'>Смена: 10.00–22.00</span>
-            }
+                    <span className='leftTwo'>
+                        Смена: {workStart} – {workEnd}
+                    </span>
+                </div>
+            ) : (
+                <span className='leftTwo2'>Смена: 9:00 – 21:00</span>
+            )}
             <div className='compactRight'>
                 <span className='rightOne'>{now.toLocaleTimeString()}</span>
                 <div className='bellIcon' style={{ position: 'relative', cursor: 'pointer' }} ref={notificationRef}>

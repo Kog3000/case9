@@ -1,15 +1,24 @@
-// src/OperatorPage/Orders/Order.jsx
 import './Order.css';
 
-
 export default function Order({ order, onReceive, onIssue, onReturn }) {
-  const isProcessed = order.status === 'issued' || order.status === 'returned';
+  // Определяем текст и стиль для метки статуса
+  let statusLabel = null;
+  let statusClass = '';
+
+  if (order.status === 'issued') {
+    statusLabel = 'Выдан клиенту';
+    statusClass = 'status-issued';
+  } else if (order.status === 'returned') {
+    statusLabel = 'Возврат';
+    statusClass = 'status-returned';
+  }
 
   return (
     <li className="order-card">
       <div className="productInfo">
         <span className="productTitle1">{`Заказ ${order.id}`}</span>
         <span className="date">{order.date}</span>
+        {statusLabel && <span className={`status-badge ${statusClass}`}>{statusLabel}</span>}
       </div>
 
       {order.status === 'pending' && onReceive && (
@@ -27,10 +36,6 @@ export default function Order({ order, onReceive, onIssue, onReturn }) {
             Вернуть на склад
           </button>
         </div>
-      )}
-
-      {isProcessed && (
-        <span className="processed-label">Обработан</span>
       )}
     </li>
   );

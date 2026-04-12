@@ -103,7 +103,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout }) 
     // Определяем роль пользователя
     const getRoleDisplay = () => {
         switch(userRole) {
-            case 'supervizer': return 'Супервайзер'
+            case 'supervisor': return 'Супервайзер'
             case 'analyst': return 'Аналитик'
             case 'operator': return 'Оператор'
             default: return 'Пользователь'

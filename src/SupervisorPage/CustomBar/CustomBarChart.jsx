@@ -78,9 +78,9 @@ export default function CustomBarChart() {
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className='btn'>
+      {/* <div className='btn'>
         <Button content='Отчёт в CSV'></Button>
-      </div>
+      </div> */}
     </div>
   )
 }

@@ -1,23 +1,22 @@
+// src/context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getUserFromToken, logout as apiLogout } from '../Api/auth';
+import { getStoredUser, logout as apiLogout } from '../Api/auth';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Восстанавливаем сессию при загрузке
-    const userData = getUserFromToken();
-    if (userData) {
-      setUser(userData);
-    }
+    const storedUser = getStoredUser();
+    if (storedUser) setUser(storedUser);
     setLoading(false);
   }, []);
 
   const loginUser = (userData) => {
     setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logoutUser = () => {
@@ -32,4 +31,8 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+};

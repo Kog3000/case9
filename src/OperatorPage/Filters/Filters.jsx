@@ -1,72 +1,60 @@
-import { useState } from 'react'
-import Button from '../../Button/Button'
-import InputCase from '../../InputCase/InputCase'
-import './Filters.css'
+import { useState } from 'react';
+import Button from '../../Button/Button';
+import './Filters.css';
 
 export default function Filters({ onFilterChange }) {
-    const [dateRange, setDateRange] = useState('')
-    const [operationType, setOperationType] = useState('')
+    const [dateStr, setDateStr] = useState('');
+    const [status, setStatus] = useState('');
 
     const handleDateChange = (e) => {
-        const value = e.target.value
-        console.log('Введена дата:', value)
-        setDateRange(value)
-    }
+        setDateStr(e.target.value); // значение в формате YYYY-MM-DD
+    };
 
-    const handleOperationChange = (e) => {
-        const value = e.target.value
-        console.log('Введена операция:', value)
-        setOperationType(value)
-    }
+    const handleStatusChange = (e) => {
+        setStatus(e.target.value);
+    };
 
     const handleApplyFilters = () => {
-        let startDate = ''
-        let endDate = ''
-        
-        // Парсим даты из строки формата 'ДД.ММ.ГГГГ - ДД.ММ.ГГГГ'
-        if (dateRange.includes(' - ')) {
-            const dates = dateRange.split(' - ')
-            if (dates.length === 2) {
-                startDate = dates[0].trim()
-                endDate = dates[1].trim()
-            }
-        }
-        
-        console.log('Отправляемые фильтры:', { startDate, endDate, operationType })
-        
         onFilterChange({
-            startDate,
-            endDate,
-            operationType  // может быть пустой строкой ''
-        })
-    }
+            created_date: dateStr || null,
+            status_order: status || null,
+        });
+    };
 
     const handleResetFilters = () => {
-        setDateRange('')
-        setOperationType('')
+        setDateStr('');
+        setStatus('');
         onFilterChange({
-            startDate: '',
-            endDate: '',
-            operationType: ''
-        })
-    }
+            created_date: null,
+            status_order: null,
+        });
+    };
 
     return (
-        <div className='filterContainer'>
-            <InputCase 
-                title='Дата' 
-                content='__.__.____ - __.__.____'
-                value={dateRange}
-                onChange={handleDateChange}
-            />
-            <InputCase 
-                title='Тип операции (принять / выдать / вернуть)' 
-                content='Все'
-                value={operationType}
-                onChange={handleOperationChange}
-            />
-            <Button content='Применить фильтры' onClick={handleApplyFilters} lengthBtn='short'/>
-            <Button content='Сбросить' onClick={handleResetFilters} variant='empty' lengthBtn='short'/>
+        <div className="filterContainer">
+            <div className="filter-group">
+                <p className="filter-label">Дата</p>
+                <input
+                    type="date"
+                    value={dateStr}
+                    onChange={handleDateChange}
+                    className="date-input"
+                />
+            </div>
+            <div className="filter-group">
+                <p className="filter-label">Статус заказов</p>
+                <select value={status} onChange={handleStatusChange} className="status-select">
+                    <option value="">Все</option>
+                    <option value="pending">В рассмотрении (pending)</option>
+                    <option value="received">Готов к выдаче (received)</option>
+                    <option value="issued">Выдан клиенту (issued)</option>
+                    <option value="returned">Возврат (returned)</option>
+                </select>
+            </div>
+            <div className="actions">
+                <Button content="Применить фильтры" onClick={handleApplyFilters} lengthBtn="short" />
+                <Button content="Сбросить" onClick={handleResetFilters} variant="empty" lengthBtn="short" />
+            </div>
         </div>
-    )
+    );
 }

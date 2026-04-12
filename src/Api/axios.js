@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // URL вашего бэкенда
+  baseURL: 'https://pvz-backend.onrender.com', // URL вашего бэкенда
   headers: { 'Content-Type': 'application/json' }
 });
 

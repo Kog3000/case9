@@ -11,9 +11,13 @@ export const receiveItem = async (deliveryItemId, receivingTime) => {
   return response.data;
 };
 
-// Получить список доставок
-export const getDeliveries = async () => {
-  const response = await api.get('/operator/delivery_demo');
+// Получить список позиций заказов с фильтрацией по дате и статусу
+export const getDeliveries = async (createdDate = null, statusOrder = null) => {
+  const params = {};
+  if (createdDate) params.created_date = createdDate;
+  if (statusOrder) params.status_order = statusOrder;
+
+  const response = await api.get('/operator/delivery_items', { params });
   return response.data;
 };
 
@@ -29,5 +33,27 @@ export const updateOrderStatus = async (deliveryItemId, status, time) => {
       }
     }
   );
+  return response.data;
+};
+
+// Получение списка pending заказов для супервайзера (по ПВЗ и дате)
+export const getSupervisorDeliveries = async (pvzId, createdDate) => {
+  const response = await api.get(`/supervisor/delivery_items/${pvzId}`, {
+    params: { created_date: createdDate }
+  });
+  return response.data;
+};
+
+// Перенаправление заказа в другую доставку (ПВЗ)
+export const changeDelivery = async (deliveryItemId, newDeliveryId) => {
+  const response = await api.put(`/supervisor/change_delivery/${deliveryItemId}`, null, {
+    params: { new_delivery_id: newDeliveryId }
+  });
+  return response.data;
+};
+
+// Получить список доступных доставок для перенаправления (на ту же дату, исключая текущую)
+export const getDeliveriesForRedirect = async (deliveryItemId) => {
+  const response = await api.get(`/supervisor/deliveries_for_redirect/${deliveryItemId}`);
   return response.data;
 };

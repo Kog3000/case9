@@ -1,0 +1,65 @@
+.filters {
+  margin-top: 30px;
+  display: flex;
+  width: 100%;
+  gap: 35px;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.search-btn {
+  padding: 8px 20px;
+  background-color: #342BE2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.content-wrapper {
+    display: flex;
+    gap: 24px;
+    margin: 0 auto; /* Центрирует весь контент */
+    margin-top: 35px;
+}
+
+.content-wrapper > div:first-child {
+    flex-shrink: 0;
+    width: 340px;
+}
+
+.content-wrapper > div:last-child {
+    flex: 1;
+    min-width: 310px;
+}
+
+.customBarChart {
+  margin-left: 250px;
+}
+
+.filter-input {
+    width: 300px;
+    height: 46px;
+    border-radius: 10px;
+    border: #D4D4D4 solid 1px;
+    padding-left: 20.5px;
+    font-size: 14px;
+    box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
+    transition: all 0.3s ease;
+    margin-top: 12px;
+}
+
+.filter-input:hover {
+    border-color: #342BE2; 
+    transform: translateY(-1px);
+    /* box-shadow: 0 0 5px rgba(52, 43, 226, 0.2); // Добавляем легкую тень */
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
+    transform: translateY(-1px);
+}
+
+

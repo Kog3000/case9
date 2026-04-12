@@ -4,32 +4,29 @@ import ProfilePage from './ProfilePage/ProfilePage';
 import './App.css';
 import OperatorPage from './OperatorPage/OperatorPage';
 import RegisterPage from './RegisterPage/RegisterPage';
-import SupervizerPage from './SupervizerPage';
+import SupervisorPage from './SupervisorPage/SupervisorPage';
 import AnalystPage from './AnalystPage';
 import { useAuth } from './Context/AuthContext';
 
 function App() {
-
   const { user, loading, loginUser, logoutUser } = useAuth();
   const [currentPage, setCurrentPage] = useState('register');
 
-  // При изменении пользователя (логин) – устанавливаем страницу в зависимости от роли
   useEffect(() => {
     if (user) {
       const role = user.role;
       if (role === 'supervisor') {
-        setCurrentPage('supervizer');
+        setCurrentPage('supervisor');
       } else if (role === 'analyst') {
         setCurrentPage('analyst');
       } else if (role === 'operator') {
         setCurrentPage('main');
       } else if (role === 'tester') {
-        setCurrentPage('tester'); // если есть страница тестировщика
+        setCurrentPage('tester');
       } else {
         setCurrentPage('main');
       }
     } else {
-      // Если пользователь вышел, переходим на страницу регистрации/логина
       setCurrentPage('register');
     }
   }, [user]);
@@ -40,7 +37,6 @@ function App() {
 
   const handleLoginSuccess = (userData) => {
     loginUser(userData);
-    // После loginUser сработает useEffect и установит страницу автоматически
   };
 
   const handleLogout = () => {
@@ -55,15 +51,15 @@ function App() {
     switch (currentPage) {
       case 'main':
         return <OperatorPage onLogout={handleLogout} userData={user} />;
-      case 'supervizer':
-        return <SupervizerPage onLogout={handleLogout} userData={user} />;
+      case 'supervisor':            // ← исправлено
+        return <SupervisorPage onLogout={handleLogout} userData={user} />;
       case 'analyst':
         return <AnalystPage onLogout={handleLogout} userData={user} />;
       case 'profile':
         return (
           <ProfilePage
             onBack={() => {
-              if (user?.role === 'supervisor') setCurrentPage('supervizer');
+              if (user?.role === 'supervisor') setCurrentPage('supervisor');
               else if (user?.role === 'analyst') setCurrentPage('analyst');
               else setCurrentPage('main');
             }}

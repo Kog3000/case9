@@ -4,7 +4,7 @@ import Order from './Order';
 import TimeModal from './TimeModal';
 import './OrdersSection.css';
 
-export default function OrdersSection() {
+export default function OrdersSection({ filters }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,16 +19,18 @@ export default function OrdersSection() {
     setError('');
     setSuccessMessage('');
     try {
-      const deliveries = await getDeliveries();
-      const items = deliveries.flatMap(delivery =>
-        delivery.items.map(item => ({
-          id: item.id,
-          title: `Заказ ${item.id}`,
-          status: item.status,
-          date: delivery.created_at,
-        }))
+      // Передаём параметры фильтрации в API
+      const items = await getDeliveries(
+        filters?.created_date || null,
+        filters?.status_order || null
       );
-      setOrders(items);
+      const formattedOrders = items.map(item => ({
+        id: item.id,
+        title: `Заказ ${item.id}`,
+        status: item.status,
+        date: item.delivery?.created_at || null,
+      }));
+      setOrders(formattedOrders);
     } catch (err) {
       console.error('Ошибка загрузки заказов:', err);
       setError('Нет доступных заказов');
@@ -37,9 +39,10 @@ export default function OrdersSection() {
     }
   };
 
+  // Загружаем заказы при монтировании и при изменении фильтров
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [filters]); // Важно: фильтры могут быть undefined, но useEffect сработает
 
   const openModal = (orderId, status) => {
     setSelectedOrderId(orderId);
@@ -53,37 +56,36 @@ export default function OrdersSection() {
     setTargetStatus(null);
   };
 
-const confirmTime = async (time) => {
-  if (!selectedOrderId || !targetStatus) return;
+  const confirmTime = async (time) => {
+    if (!selectedOrderId || !targetStatus) return;
 
-  // Обрезаем до HH:MM, игнорируем секунды, если они есть
-  let formattedTime = time;
-  if (time.length > 5) {
-    formattedTime = time.slice(0,5);
-  }
-
-  try {
-    if (targetStatus === 'received') {
-      await receiveItem(selectedOrderId, formattedTime);
-    } else {
-      await updateOrderStatus(selectedOrderId, targetStatus, formattedTime);
+    // Обрезаем до HH:MM, игнорируем секунды, если они есть
+    let formattedTime = time;
+    if (time.length > 5) {
+      formattedTime = time.slice(0, 5);
     }
-    setSuccessMessage(`Заказ ${selectedOrderId} успешно обновлён`);
-    await loadOrders();
-  } catch (err) {
-    console.error('Ошибка при обновлении статуса заказа:', err);
-    setError(err.message || 'Не удалось обновить статус заказа');
-  } finally {
-    closeModal();
-  }
-};
+
+    try {
+      if (targetStatus === 'received') {
+        await receiveItem(selectedOrderId, formattedTime);
+      } else {
+        await updateOrderStatus(selectedOrderId, targetStatus, formattedTime);
+      }
+      setSuccessMessage(`Заказ ${selectedOrderId} успешно обновлён`);
+      await loadOrders(); // обновляем список после изменения статуса
+    } catch (err) {
+      console.error('Ошибка при обновлении статуса заказа:', err);
+      setError(err.message || 'Не удалось обновить статус заказа');
+    } finally {
+      closeModal();
+    }
+  };
 
   return (
     <section className="mainBody">
       <div className="orders-header">
         <h3>Заказы ({orders.length})</h3>
       </div>
-
 
       {loading && <div className="loading">Загрузка заказов...</div>}
       {error && <div className="error">{error}</div>}

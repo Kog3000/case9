@@ -1,0 +1,115 @@
+/* Затемнённый фон */
+.redirect-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Карточка модального окна */
+.redirect-modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 400px;
+  max-width: 90%;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Заголовок */
+.redirect-modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #342BE2;
+  margin: 0 0 8px 0;
+}
+
+.redirect-modal-order {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Поле выбора ПВЗ */
+.redirect-modal-field {
+  margin-bottom: 24px;
+}
+
+.redirect-modal-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.redirect-modal-select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: white;
+  transition: border 0.2s;
+}
+
+.redirect-modal-select:focus {
+  outline: none;
+  border-color: #342BE2;
+}
+
+/* Кнопки */
+.redirect-modal-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.redirect-modal-btn {
+  padding: 8px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.redirect-modal-btn.confirm {
+  background-color: #342BE2;
+  color: white;
+}
+
+.redirect-modal-btn.confirm:hover {
+  background-color: #2019b0;
+  transform: translateY(-1px);
+}
+
+.redirect-modal-btn.cancel {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.redirect-modal-btn.cancel:hover {
+  background-color: #e0e0e0;
+}
