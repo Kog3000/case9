@@ -1,58 +1,110 @@
+/* src/SupervisorPage/CustomBar/CustomBarChart.css */
+
 .chart-container {
+  border-radius: 16px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
-  margin-left: 0;
-  margin-top: 1px;
+  margin-right: 70px;
+  height: 100%; /* Это нормально, если родитель имеет высоту */
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+  flex-shrink: 0;
 }
 
 .chart-title {
   text-align: center;
-  margin: 0 0 20px 0;
+  margin: 0;
   font-size: 19px;
   font-weight: 600;
-  color: #000;
+  color: #1a1f36;
 }
 
-.chart-legend {
+.chart-stats {
   display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #eef0f5;
-  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+.stat-item {
+  font-size: 14px;
   color: #666;
 }
 
-.legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
+.stat-item strong {
+  color: #333;
+  font-weight: 600;
 }
 
+.stat-item.overload strong {
+  color: #AA3B3B;
+}
+
+/* Ключевое исправление - фиксированная высота */
 .chart-wrapper {
   width: 100%;
-  height: 350px;
+  height: 400px; /* Фиксированная высота */
+  flex-shrink: 0;
+  position: relative;
+}
+
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  width: 100%;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-state {
+  flex-direction: column;
+  gap: 16px;
+  color: #d32f2f;
+}
+
+.error-state button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-state button:hover {
+  background-color: #0056b3;
+}
+
+.empty-state {
+  color: #999;
+  text-align: center;
 }
 
 .custom-tooltip {
-  background-color: white;
+  background: white;
   padding: 10px 15px;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  border: 1px solid #eef0f5;
+  border: 1px solid #eee;
 }
 
-.tooltip-day {
+.tooltip-hour {
   margin: 0 0 5px 0;
-  font-weight: bold;
-  color: #1a1f36;
+  font-weight: 600;
+  color: #333;
 }
 
 .tooltip-value {
@@ -63,7 +115,7 @@
 }
 
 .tooltip-value span {
-  color: #8b8f9e;
+  color: #666;
   font-size: 12px;
 }
 
@@ -71,25 +123,29 @@
   font-size: 18px;
 }
 
-.chart-container {
-  border-radius: 16px;
-  padding: 20px;
-  height: 100%;
+.tooltip-warning {
+  margin: 5px 0 0 0;
+  font-size: 12px;
+  color: #AA3B3B;
 }
 
-.chart-title {
-  text-align: center;
-  margin: 0 0 20px 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1a1f36;
-}
-
-.chart-wrapper {
-  width: 100%;
-  height: 350px;
+.tooltip-capacity {
+  margin: 5px 0 0 0;
+  font-size: 11px;
+  color: #999;
 }
 
 .btn {
   margin-left: 200px;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #999;
+  text-align: center;
+  padding: 20px;
 }

@@ -1,86 +1,244 @@
+// src/SupervisorPage/CustomBar/CustomBarChart.jsx
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import { useState, useEffect, useRef } from 'react'
+import { getDailyLoad } from '../../Api/statistics'
 import './CustomBarChart.css'
-import {barInfo} from '../../data.js'
-import Button from '../../Button/Button.jsx'
 
-export default function CustomBarChart() {
-  const getColorByValue = (value) => {
-    if (value <= 20) {
-      return '#509F6A'
-    } else if (value >= 21 && value <= 35) {
-      return '#809F50'
-    } else if (value >= 36 && value <= 50) {
-      return '#9F6050'
-    } else if (value >= 51 && value <= 70) {
-      return '#9a4c4e'
-    } else if (value >= 71) {
-      return '#AA3B3B'
-    }
+export default function CustomBarChart({ pvzId, selectedDate }) {
+  const [chartData, setChartData] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [capacityPerHour, setCapacityPerHour] = useState(15)
+  const [totalOperations, setTotalOperations] = useState(0)
+  const [overloadHours, setOverloadHours] = useState(0)
+  
+  // Добавляем ref для предотвращения множественных запросов
+  const isMounted = useRef(true);
+  const lastRequestRef = useRef({ pvzId: null, date: null });
+
+  const getColorByValue = (value, capacity) => {
+    if (value <= capacity) return '#509F6A'
+    if (value <= capacity * 1.5) return '#809F50'
+    if (value <= capacity * 2) return '#9F6050'
+    if (value <= capacity * 2.5) return '#9a4c4e'
+    return '#AA3B3B'
   }
 
+  // Функция проверки валидности даты
+  const isValidDate = (date) => {
+    if (!date) return false;
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(date)) return false;
+    const year = parseInt(date.split('-')[0]);
+    return year >= 2000 && year <= 2100;
+  }
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Загружаем данные ТОЛЬКО если оба поля заполнены и дата валидна
+    if (pvzId && selectedDate && isValidDate(selectedDate)) {
+      // Проверяем, не тот же ли запрос уже выполняется
+      if (lastRequestRef.current.pvzId === pvzId && lastRequestRef.current.date === selectedDate) {
+        console.log('⚠️ Тот же запрос уже выполняется, пропускаем');
+        return;
+      }
+      
+      console.log('✅ Условия выполнены, загружаем данные для:', { pvzId, selectedDate });
+      lastRequestRef.current = { pvzId, date: selectedDate };
+      loadData();
+    } else {
+      // Если данные не валидны - очищаем график
+      console.log('⏸️ Ожидание валидных данных:', { pvzId, selectedDate });
+      if (!loading) {
+        setChartData([]);
+        setError(null);
+      }
+    }
+  }, [pvzId, selectedDate])
+
+  const loadData = async () => {
+    // Дополнительная проверка перед запросом
+    if (!pvzId || !selectedDate || !isValidDate(selectedDate)) {
+      console.log('❌ Загрузка отменена: невалидные данные');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log('🚀 Выполняется запрос...');
+      const data = await getDailyLoad(pvzId, selectedDate);
+      
+      if (!isMounted.current) return;
+      
+      console.log('✅ Данные получены:', data);
+      
+      if (!data || !data.hourly) {
+        throw new Error('Неверный формат данных');
+      }
+      
+      const formattedData = data.hourly.map(item => ({
+        hour: `${item.hour}:00`,
+        value: item.operations,
+        overload: item.overload,
+      }));
+      
+      setChartData(formattedData);
+      setCapacityPerHour(data.capacity_per_hour || 15);
+      setTotalOperations(data.total_operations || 0);
+      setOverloadHours(data.overload_hours || 0);
+      
+    } catch (err) {
+      console.error('❌ Ошибка:', err);
+      if (isMounted.current) {
+        setError(err.message || 'Не удалось загрузить данные');
+        setChartData([]);
+      }
+    } finally {
+      if (isMounted.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  // ... остальной код компонента (CustomTooltip, рендеринг)
+  // Обратите внимание: нужно скопировать сюда также CustomTooltip и return из предыдущей версии
+  
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
-      const value = payload[0].value
+      const value = payload[0].value;
+      const isOverload = value > capacityPerHour;
       return (
         <div className="custom-tooltip">
-          <p className="tooltip-day">{label}</p>
+          <p className="tooltip-hour">{label}</p>
           <p className="tooltip-value">
-            <span>Клиентов:</span>
-            <strong style={{ color: getColorByValue(value) }}>{value}</strong>
+            <span>Операций:</span>
+            <strong style={{ color: getColorByValue(value, capacityPerHour) }}>
+              {value}
+            </strong>
+          </p>
+          {isOverload && (
+            <p className="tooltip-warning">
+              ⚠️ Превышение на {value - capacityPerHour} ед.
+            </p>
+          )}
+          <p className="tooltip-capacity">
+            Норма: {capacityPerHour} оп/час
           </p>
         </div>
-      )
+      );
     }
-    return null
+    return null;
+  };
+
+  // Рендеринг состояний
+  if (!pvzId || !selectedDate) {
+    return (
+      <div className="chart-container">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="empty-state">
+          Выберите ПВЗ и дату для просмотра статистики
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidDate(selectedDate)) {
+    return (
+      <div className="chart-container">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="empty-state">
+          Пожалуйста, выберите корректную дату (например, 2026-04-13)
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="chart-container">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="loading-state">Загрузка данных...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="chart-container">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="error-state">
+          <p>{error}</p>
+          <button onClick={loadData}>Повторить</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (chartData.length === 0) {
+    return (
+      <div className="chart-container">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="empty-state">
+          Нет данных за выбранную дату. Попробуйте другую дату.
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="chart-container">
-      <p className="chart-title">Загруженность ПВЗ</p>
-      
-      {/* Легенда для пояснения цветов
-      <div className="chart-legend">
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#22c55e' }}></div>
-          <span>Высокая загрузка (&gt;45)</span>
+      <div className="chart-header">
+        <p className="chart-title">Загруженность ПВЗ</p>
+        <div className="chart-stats">
+          <span className="stat-item">
+            Всего операций: <strong>{totalOperations}</strong>
+          </span>
+          <span className="stat-item overload">
+            Часов перегрузки: <strong>{overloadHours}</strong>
+          </span>
+          <span className="stat-item">
+            Норма: <strong>{capacityPerHour} оп/час</strong>
+          </span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#eab308' }}></div>
-          <span>Средняя загрузка (30-45)</span>
-        </div>
-        <div className="legend-item">
-          <div className="legend-color" style={{ background: '#ef4444' }}></div>
-          <span>Низкая загрузка (&lt;30)</span>
-        </div>
-      </div> */}
+      </div>
       
       <div className="chart-wrapper">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={barInfo} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
+          <BarChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
             <XAxis 
-              dataKey="day" 
-              tick={false}
+              dataKey="hour" 
+              tick={{ fill: '#666', fontSize: 12 }}
               axisLine={{ stroke: '#ddd' }}
+              interval={0}
+              angle={-45}
+              textAnchor="end"
+              height={60}
             />
             <YAxis 
               tick={{ fill: '#666', fontSize: 14 }}
               axisLine={{ stroke: '#ddd' }}
+              label={{ value: 'Количество операций', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
             <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1000}>
-              {barInfo.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
-                  fill={getColorByValue(entry.value)} 
+                  fill={getColorByValue(entry.value, capacityPerHour)} 
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-      {/* <div className='btn'>
-        <Button content='Отчёт в CSV'></Button>
-      </div> */}
     </div>
-  )
+  );
 }

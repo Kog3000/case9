@@ -1,4 +1,4 @@
-// src/api/auth.js
+// src/Api/auth.js - полная версия
 import api from './axios';
 import { jwtDecode } from 'jwt-decode';
 
@@ -14,7 +14,6 @@ export const login = async (email, password) => {
   if (response.data.access_token) {
     localStorage.setItem('access_token', response.data.access_token);
   }
-  // Сохраняем полные данные пользователя (с pvz)
   if (response.data.user) {
     localStorage.setItem('user', JSON.stringify(response.data.user));
   }
@@ -38,7 +37,6 @@ export const getStoredUser = () => {
   return null;
 };
 
-// Для совместимости (если где-то используется декодирование токена)
 export const getUserFromToken = () => {
   const token = localStorage.getItem('access_token');
   if (!token) return null;
@@ -52,4 +50,12 @@ export const getUserFromToken = () => {
   } catch {
     return null;
   }
+};
+
+// Не забудьте export default, если он нужен
+export default {
+  login,
+  logout,
+  getStoredUser,
+  getUserFromToken
 };

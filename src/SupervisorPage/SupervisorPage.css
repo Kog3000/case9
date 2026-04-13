@@ -1,9 +1,11 @@
+/* src/SupervizerPage/SupervisorPage.css */
+
 .filters {
   margin-top: 30px;
   display: flex;
   width: 100%;
   gap: 35px;
-  margin-bottom: 24px;
+  /* margin-bottom: 24px; */
   align-items: center;
 }
 
@@ -16,50 +18,239 @@
   cursor: pointer;
 }
 
-.content-wrapper {
-    display: flex;
-    gap: 24px;
-    margin: 0 auto; /* Центрирует весь контент */
-    margin-top: 35px;
+/* src/SupervisorPage/CustomBar/CustomBarChart.css */
+
+/* Стили для контейнера диаграммы (когда данные загружены) */
+.chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px; /* Такие же отступы как у .chart-placeholder */
+  text-align: center;
+  border: 1px solid #eef0f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.content-wrapper > div:first-child {
-    flex-shrink: 0;
-    width: 340px;
+/* Если нужно, чтобы внутренности диаграммы не были по центру */
+.chart-container .chart-header {
+  text-align: left; /* Возвращаем выравнивание заголовка влево */
+  margin-bottom: 20px;
 }
 
-.content-wrapper > div:last-child {
-    flex: 1;
-    min-width: 310px;
+.chart-container .chart-wrapper {
+  text-align: left;
+}
+/* src/SupervizerPage/SupervisorPage.css */
+
+/* Добавьте или обновите эти стили */
+
+.chart-section {
+  flex: 1;
+  margin-right: 55px; /* ← ОТСТУП СПРАВА 55px ДЛЯ ВСЕЙ СЕКЦИИ */
+  min-width: 0;
 }
 
 .customBarChart {
-  margin-left: 250px;
+  padding-top: 24px;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 
+/* Для контейнера диаграммы, чтобы он был как плейсхолдер */
+.chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px; /* Внутренние отступы контейнера */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #eef0f5;
+}
+
+.content-wrapper {
+  display: flex;
+  gap: 24px;
+  margin: 0 auto;
+  margin-top: 35px;
+  width: 100%;
+}
+
+/* Секция заказов - фиксированная ширина 340px */
+.orders-section {
+  flex-shrink: 0;
+  width: 340px;
+}
+
+/* .ordersList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  border: 1px solid #eef0f5;
+  border-radius: 8px;
+} */
+
+.noOrders {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
+
+/* Секция диаграммы - занимает оставшееся место */
+.chart-section {
+  flex: 1;
+  min-width: 0;
+  margin-left: 255px;
+  margin-right: 20px;
+}
+
+.chart-filters {
+  background: white;
+  margin-top: 25px;
+  padding: 30px;
+  border-radius: 12px;
+  /* margin-bottom: 20px; */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #eef0f5;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.chart-section-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.chart-filter-inputs {
+  display: flex;
+  width: 100%;
+  gap: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Контейнер для диаграммы */
+/* .customBarChart {
+  width: 100%;
+  padding-top: 0;
+  margin-left: 0;
+} */
+
 .filter-input {
-    width: 300px;
-    height: 46px;
-    border-radius: 10px;
-    border: #D4D4D4 solid 1px;
-    padding-left: 20.5px;
-    font-size: 14px;
-    box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
-    transition: all 0.3s ease;
-    margin-top: 12px;
+  width: 300px;
+  height: 46px;
+  border-radius: 10px;
+  border: #D4D4D4 solid 1px;
+  padding-left: 20.5px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.filter-input.first {
+  margin-right: 15px;
 }
 
 .filter-input:hover {
-    border-color: #342BE2; 
-    transform: translateY(-1px);
-    /* box-shadow: 0 0 5px rgba(52, 43, 226, 0.2); // Добавляем легкую тень */
+  border-color: #342BE2;
+  transform: translateY(-1px);
 }
 
 .filter-input:focus {
-    outline: none;
-    border-color: #342BE2;
-    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
-    transform: translateY(-1px);
+  outline: none;
+  border-color: #342BE2;
+  box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
+  transform: translateY(-1px);
 }
 
+/* Стили для фильтров диаграммы */
+.chart-filter-controls .filter-input {
+  width: 300px;
+  height: 46px;
+  border-radius: 10px;
+  border: #D4D4D4 solid 1px;
+  padding-left: 20.5px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  margin-top: 0;
+}
 
+.chart-filter-controls .filter-input:hover {
+  border-color: #342BE2;
+  transform: translateY(-1px);
+}
+
+.chart-filter-controls .filter-input:focus {
+  outline: none;
+  border-color: #342BE2;
+  box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Кнопка для диаграммы */
+.chart-search-btn {
+  padding: 8px 20px;
+  background-color: #342BE2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 46px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.chart-search-btn:hover {
+  background-color: #251faa;
+  transform: translateY(-1px);
+}
+
+.chart-search-btn:active {
+  transform: translateY(0);
+}
+
+/* Ошибки и сообщения для диаграммы */
+.chart-error {
+  color: #d32f2f;
+  font-size: 14px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background-color: #ffebee;
+  border-radius: 8px;
+}
+
+/* Плейсхолдер когда диаграмма не загружена */
+.chart-placeholder {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  color: #999;
+  border: 1px dashed #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  /* margin-top: 20px; */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.error {
+  color: #d32f2f;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.success {
+  color: #4caf50;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+}
