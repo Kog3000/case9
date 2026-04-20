@@ -6,6 +6,7 @@ import RedirectModal from './RedirectModal/RedirectModal';
 import './SupervisorPage.css';
 import CustomBarChart from './CustomBar/CustomBarChart'
 import Button from '../Button/Button'
+import ProfilePage from '../ProfilePage/ProfilePage';
 
 export default function SupervisorPage({ userData, onLogout }) {
   // Фильтры для заказов
@@ -19,11 +20,13 @@ export default function SupervisorPage({ userData, onLogout }) {
   // Отдельные фильтры для диаграммы
   const [chartPvzId, setChartPvzId] = useState('');
   const [chartDate, setChartDate] = useState('');
-  const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState('');
-  const [chartKey, setChartKey] = useState(0); // Для принудительного обновления
+  const [chartKey, setChartKey] = useState(0);
 
-  // Модальное окно
+  // Состояние для модального окна профиля
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Модальное окно перенаправления
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [deliveriesList, setDeliveriesList] = useState([]);
@@ -65,15 +68,12 @@ export default function SupervisorPage({ userData, onLogout }) {
     }
   };
 
-  // Отдельный поиск для диаграммы
-  // SupervisorPage.jsx - обновите handleChartSearch
   const handleChartSearch = () => {
     if (!chartPvzId || !chartDate) {
       setChartError('Заполните ID ПВЗ и дату для диаграммы');
       return;
     }
     
-    // Проверка формата даты
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(chartDate)) {
       setChartError('Неверный формат даты. Используйте ГГГГ-ММ-ДД');
@@ -87,7 +87,6 @@ export default function SupervisorPage({ userData, onLogout }) {
     }
     
     setChartError('');
-    // Просто обновляем ключ, данные загрузятся через useEffect в CustomBarChart
     setChartKey(prev => prev + 1);
   };
 
@@ -118,8 +117,17 @@ export default function SupervisorPage({ userData, onLogout }) {
     }
   };
 
+  // Обработчик выхода из профиля
+  const handleProfileLogout = () => {
+    setIsProfileModalOpen(false);
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
   return (
     <div className="supervisor-page">
+
       {/* Блок фильтров для заказов */}
       <div className="filters">
         <input
@@ -206,6 +214,7 @@ export default function SupervisorPage({ userData, onLogout }) {
         </div>
       </div>
 
+      {/* Модальное окно перенаправления */}
       <RedirectModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -213,6 +222,25 @@ export default function SupervisorPage({ userData, onLogout }) {
         deliveriesList={deliveriesList}
         orderId={selectedOrderId}
       />
+
+      {/* Модальное окно профиля */}
+      {isProfileModalOpen && (
+        <div className="profile-modal-overlay" onClick={() => setIsProfileModalOpen(false)}>
+          <div className="profile-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="profile-modal-close" 
+              onClick={() => setIsProfileModalOpen(false)}
+            >
+              ×
+            </button>
+            <ProfilePage 
+              onBack={() => setIsProfileModalOpen(false)}
+              onLogout={handleProfileLogout}
+              userData={userData}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

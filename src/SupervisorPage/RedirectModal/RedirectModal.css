@@ -15,23 +15,12 @@
 /* Карточка модального окна */
 .redirect-modal-content {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 12px;
   width: 400px;
   max-width: 90%;
   padding: 24px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   animation: modalFadeIn 0.2s ease;
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 /* Заголовок */
@@ -65,39 +54,42 @@
 
 .redirect-modal-select {
   width: 100%;
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background-color: white;
-  transition: border 0.2s;
+    height: 46px;
+    border-radius: 10px;
+    border: #D4D4D4 solid 1px;
+    padding-left: 20.5px;
+    font-size: 14px;
+    box-sizing: border-box; /* Чтобы padding не увеличивал ширину */
+    transition: all 0.3s ease;
+}
+
+.redirect-modal-select:hover {
+    border-color: #342BE2; 
+    transform: translateY(-1px);
+    /* box-shadow: 0 0 5px rgba(52, 43, 226, 0.2); // Добавляем легкую тень */
 }
 
 .redirect-modal-select:focus {
-  outline: none;
-  border-color: #342BE2;
-}
-
-/* Кнопки */
-.redirect-modal-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.redirect-modal-btn {
-  padding: 8px 20px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.2);
+    transform: translateY(-1px);
 }
 
 .redirect-modal-btn.confirm {
-  background-color: #342BE2;
-  color: white;
+  padding: 12.15px;
+    width: 48%;
+    border: none;
+    margin-right: 4%;
+    height: 46px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    color: #fff;
+    background-color: #342BE2;
+    border-radius: 10px;
+    box-sizing: border-box;
 }
 
 .redirect-modal-btn.confirm:hover {
@@ -106,8 +98,19 @@
 }
 
 .redirect-modal-btn.cancel {
-  background-color: #f0f0f0;
-  color: #333;
+  padding: 12.15px;
+    border: none;
+    height: 46px;
+    width: 48%;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    color: #342BE2;
+    background-color: transparent;
+    border: #342BE2 solid 1px;
+    border-radius: 10px;
+    box-sizing: border-box;
 }
 
 .redirect-modal-btn.cancel:hover {

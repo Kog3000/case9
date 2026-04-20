@@ -28,7 +28,7 @@ export default function RedirectModal({ isOpen, onClose, onConfirm, deliveriesLi
             onChange={(e) => setSelectedDeliveryId(e.target.value)}
             className="redirect-modal-select"
           >
-            <option value="">-- Выберите доставку --</option>
+            <option value="">Выберите доставку</option>
             {deliveriesList.map(delivery => (
               <option key={delivery.id} value={delivery.id}>
                 ПВЗ {delivery.pvz?.id || '?'} – {delivery.pvz?.address || 'Адрес не указан'} (доставка №{delivery.id})

@@ -84,10 +84,10 @@ li:hover {
 /* Кнопка */
 .productButton {
     padding: 8px 20px;
-    background-color: #424242;
+    background-color: #4d4d4d;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;

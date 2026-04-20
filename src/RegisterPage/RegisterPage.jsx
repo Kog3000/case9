@@ -109,17 +109,6 @@ export default function RegisterPage({ onRegister, onLoginSuccess }) {
                     disabled={isLoading}>
                     {isLoading ? 'Вход...' : 'Войти в систему'}
                 </button>
-                
-                <div className="register-divider">
-                    <span className="divider-text">Еще нет аккаунта?</span>
-                </div>
-                
-                <button 
-                    onClick={onRegister} 
-                    className="register-button"
-                    disabled={isLoading}>
-                    Зарегистрироваться
-                </button>
             </div>
         </div>
     );
