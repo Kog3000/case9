@@ -107,7 +107,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
           setNoData(true);
           setError(null);
         } else {
-        setError(err.message || 'Не удалось загрузить данные');
+          setError(err.message || 'Не удалось загрузить данные');
         }
         setChartData([]);
       }
@@ -117,7 +117,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
       }
     }
   };
-  
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const value = payload[0].value;
@@ -187,30 +187,31 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
                           error.includes('не отвечает') ||
                           error.includes('Network Error');
     
-    return (
-      <div className="chart-container">
-        <p className="chart-title">Загруженность ПВЗ</p>
-        <div className="error-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <p>{error}</p>
-          {isServerError ? (
-            <div className="server-error-actions">
-              <button onClick={() => window.location.reload()}>
-                Перезагрузить страницу
-              </button>
-              <button onClick={loadData}>
-                Попробовать снова
-              </button>
-            </div>
-          ) : (
-          <button onClick={loadData}>Повторить</button>
+  return (
+  <div className="chart-container">
+    <p className="chart-title">Загруженность ПВЗ</p>
+    <div className="error-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" strokeWidth="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>{error}</p>
+      {isServerError ? (
+        <div className="server-error-actions">
+          <button onClick={() => window.location.reload()}>
+            Перезагрузить страницу
+          </button>
+          <button onClick={loadData}>
+            Попробовать снова
+          </button>
         </div>
-      </div>
-    );
+      ) : (
+        <button onClick={loadData}>Повторить</button>
+      )}
+    </div>
+  </div>
+);
   }
 
   // Состояние: пустые данные
