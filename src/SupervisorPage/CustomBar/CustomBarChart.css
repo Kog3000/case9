@@ -149,3 +149,101 @@
   text-align: center;
   padding: 20px;
 }
+
+.no-data-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  text-align: center;
+  color: #999;
+}
+
+.no-data-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.no-data-state p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.no-data-subtitle {
+  font-size: 14px;
+  color: #bbb;
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #999;
+  text-align: center;
+  padding: 20px;
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  gap: 16px;
+  color: #d32f2f;
+  text-align: center;
+}
+
+.error-state button {
+  padding: 8px 16px;
+  background-color: #342BE2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.error-state button:hover {
+  background-color: #251faa;
+}
+
+.error-state svg {
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.server-error-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.server-error-actions button {
+  padding: 8px 16px;
+  background-color: #342BE2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.server-error-actions button:first-child {
+  background-color: #666;
+}
+
+.server-error-actions button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}

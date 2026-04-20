@@ -11,8 +11,8 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
   const [capacityPerHour, setCapacityPerHour] = useState(15)
   const [totalOperations, setTotalOperations] = useState(0)
   const [overloadHours, setOverloadHours] = useState(0)
+  const [noData, setNoData] = useState(false) // Добавляем состояние для отсутствия данных
   
-  // Добавляем ref для предотвращения множественных запросов
   const isMounted = useRef(true);
   const lastRequestRef = useRef({ pvzId: null, date: null });
 
@@ -58,6 +58,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
       if (!loading) {
         setChartData([]);
         setError(null);
+        setNoData(false);
       }
     }
   }, [pvzId, selectedDate])
@@ -71,6 +72,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
 
     setLoading(true);
     setError(null);
+    setNoData(false);
     
     try {
       console.log('🚀 Выполняется запрос...');
@@ -78,10 +80,11 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
       
       if (!isMounted.current) return;
       
-      console.log('✅ Данные получены:', data);
-      
-      if (!data || !data.hourly) {
-        throw new Error('Неверный формат данных');
+      // Проверяем, есть ли данные
+      if (!data || !data.hourly || data.hourly.length === 0) {
+        setNoData(true);
+        setChartData([]);
+        return;
       }
       
       const formattedData = data.hourly.map(item => ({
@@ -94,11 +97,18 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
       setCapacityPerHour(data.capacity_per_hour || 15);
       setTotalOperations(data.total_operations || 0);
       setOverloadHours(data.overload_hours || 0);
+      setNoData(false);
       
     } catch (err) {
-      console.error('❌ Ошибка:', err);
+      console.error('Ошибка:', err);
       if (isMounted.current) {
+        // Проверяем,是否是 404 ошибка (данные не найдены)
+        if (err.response?.status === 404 || err.message?.includes('не найдены')) {
+          setNoData(true);
+          setError(null);
+        } else {
         setError(err.message || 'Не удалось загрузить данные');
+        }
         setChartData([]);
       }
     } finally {
@@ -107,9 +117,6 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
       }
     }
   };
-
-  // ... остальной код компонента (CustomTooltip, рендеринг)
-  // Обратите внимание: нужно скопировать сюда также CustomTooltip и return из предыдущей версии
   
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -138,7 +145,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     return null;
   };
 
-  // Рендеринг состояний
+  // Состояние: не выбраны фильтры
   if (!pvzId || !selectedDate) {
     return (
       <div className="chart-container">
@@ -150,6 +157,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     );
   }
 
+  // Состояние: некорректная дата
   if (!isValidDate(selectedDate)) {
     return (
       <div className="chart-container">
@@ -161,6 +169,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     );
   }
 
+  // Состояние: загрузка
   if (loading) {
     return (
       <div className="chart-container">
@@ -170,29 +179,53 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     );
   }
 
+  // Состояние: ошибка
+ 
+
   if (error) {
+    const isServerError = error.includes('Сервер временно недоступен') || 
+                          error.includes('не отвечает') ||
+                          error.includes('Network Error');
+    
     return (
       <div className="chart-container">
         <p className="chart-title">Загруженность ПВЗ</p>
         <div className="error-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d32f2f" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
           <p>{error}</p>
+          {isServerError ? (
+            <div className="server-error-actions">
+              <button onClick={() => window.location.reload()}>
+                Перезагрузить страницу
+              </button>
+              <button onClick={loadData}>
+                Попробовать снова
+              </button>
+            </div>
+          ) : (
           <button onClick={loadData}>Повторить</button>
         </div>
       </div>
     );
   }
 
+  // Состояние: пустые данные
   if (chartData.length === 0) {
     return (
       <div className="chart-container">
         <p className="chart-title">Загруженность ПВЗ</p>
         <div className="empty-state">
-          Нет данных за выбранную дату. Попробуйте другую дату.
+          Нет данных для отображения
         </div>
       </div>
     );
   }
 
+  // Состояние: данные загружены и отображаются
   return (
     <div className="chart-container">
       <div className="chart-header">
