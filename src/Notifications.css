@@ -1,0 +1,220 @@
+/* Notifications.css */
+
+/* Стили для колокольчика и бейджа */
+.notifications-container {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.bell-icon {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-right: 30px;
+}
+
+.bell-image {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+
+.bell-image:hover {
+    transform: scale(1.1);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    animation: pulse 1s infinite;
+}
+
+/* Модальное окно уведомлений */
+.notifications-modal {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 380px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid #eef0f5;
+    z-index: 1000;
+    overflow: hidden;
+    animation: slideDown 0.2s ease;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef0f5;
+    background: #f8f9ff;
+}
+
+.notifications-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.notifications-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.mark-all-read-btn {
+    background: none;
+    border: none;
+    font-size: 12px;
+    color: #342BE2;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.mark-all-read-btn:hover {
+    background: rgba(52, 43, 226, 0.1);
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #8b8f9e;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+    background: #eef0f5;
+    color: #1a1f36;
+}
+
+/* Список уведомлений */
+.notifications-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Элемент уведомления */
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #eef0f5;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8f9ff;
+}
+
+.notification-item.unread {
+    background: #f0f1ff;
+}
+
+.notification-item.unread:hover {
+    background: #e8e9ff;
+}
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #342BE2;
+    margin-top: 6px;
+    flex-shrink: 0;
+}
+
+.notification-item:not(.unread) .notification-dot {
+    background: #d4d4d4;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 14px;
+    color: #1a1f36;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.notification-time {
+    font-size: 11px;
+    color: #8b8f9e;
+}
+
+/* Пустое состояние */
+.no-notifications {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.no-notifications-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.no-notifications-text {
+    font-size: 14px;
+    color: #8b8f9e;
+}
+
+/* Подвал модального окна */
+.notifications-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #eef0f5;
+    background: #f8f9ff;
+}
+
+.clear-all-btn {
+    width: 100%;
+    padding: 8px;
+    background: white;
+    border: 1px solid #ef4444;
+    border-radius: 8px;
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.clear-all-btn:hover {
+    background: #ef4444;
+    color: white;
+}
+

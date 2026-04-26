@@ -1,20 +1,18 @@
 import './Header.css'
 import { defaultData, notifications } from '../data.js'
 import { useState, useEffect, useRef } from 'react'
-import bellIcon from '../../assets/bell_icon.svg'
 import ProfilePage from '../ProfilePage/ProfilePage'
 import { getCurrentUser } from '../Api/userService.js'
+import { userStorage } from '../Api/userStorageService.js'
+import Notifications from '../Notifications.jsx'
 
 export default function Header({ onPageChange, currentPage, userName, userData, onLogout, onUserUpdate }) {
     const [now, setNow] = useState(new Date())
-    const [unreadCount, setUnreadCount] = useState(0)
-    const [showNotifications, setShowNotifications] = useState(false)
     const [showProfileModal, setShowProfileModal] = useState(false)
-    const [notificationsList, setNotificationsList] = useState(notifications)
     const [currentUser, setCurrentUser] = useState(userData)
     const [userNameState, setUserNameState] = useState('')
     const [userAvatar, setUserAvatar] = useState('')
-    const notificationRef = useRef(null)
+    const [currentUserId, setCurrentUserId] = useState(null)
     const profileModalRef = useRef(null)
 
     // Загрузка данных пользователя с бэкенда
@@ -23,43 +21,71 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
             try {
                 const userFromBackend = await getCurrentUser()
                 if (userFromBackend) {
-                    setCurrentUser(prev => ({ ...prev, ...userFromBackend }))
-                    // Подгружаем name
-                    const userName = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
-                    setUserNameState(userName)
-                    setUserAvatar(userFromBackend.avatar || defaultData.image)
+                    const userId = userFromBackend.id || userFromBackend.user_id
+                    setCurrentUserId(userId)
+                    userStorage.setCurrentUserId(userId)
                     
-                    // Сохраняем в localStorage
-                    localStorage.setItem('userName', userName)
-                    localStorage.setItem('userDisplayName', userName)
-                    if (userFromBackend.avatar) {
-                        localStorage.setItem('userAvatar', userFromBackend.avatar)
+                    setCurrentUser(prev => ({ ...prev, ...userFromBackend }))
+                    
+                    let userName = userStorage.getUserName(userId)
+                    let userAvatar = userStorage.getUserAvatar(userId)
+                    
+                    if (!userName) {
+                        userName = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
+                        userStorage.setUserName(userId, userName)
+                    }
+                    
+                    if (!userAvatar && userFromBackend.avatar) {
+                        userAvatar = userFromBackend.avatar
+                        userStorage.setUserAvatar(userId, userAvatar)
+                    } else if (!userAvatar) {
+                        userAvatar = defaultData.image
+                    }
+                    
+                    setUserNameState(userName)
+                    setUserAvatar(userAvatar)
+                    
+                    if (userFromBackend.role) {
+                        userStorage.setUserRole(userId, userFromBackend.role)
                     }
                 }
             } catch (error) {
                 console.error('Ошибка загрузки данных пользователя:', error)
-                const localName = localStorage.getItem('userName') || 
-                                 localStorage.getItem('userDisplayName') ||
-                                 userData?.name ||
-                                 userData?.displayName ||
-                                 userName ||
-                                 'Пользователь'
-                const localAvatar = localStorage.getItem('userAvatar') || 
-                                   userData?.avatar || 
-                                   defaultData.image
-                setUserNameState(localName)
-                setUserAvatar(localAvatar)
+                const savedUserId = userStorage.getCurrentUserId()
+                if (savedUserId) {
+                    const savedName = userStorage.getUserName(savedUserId)
+                    const savedAvatar = userStorage.getUserAvatar(savedUserId)
+                    
+                    setUserNameState(savedName || 'Пользователь')
+                    setUserAvatar(savedAvatar || defaultData.image)
+                    setCurrentUserId(savedUserId)
+                } else {
+                    const localName = localStorage.getItem('userName') || 
+                                     localStorage.getItem('userDisplayName') ||
+                                     userData?.name ||
+                                     userData?.displayName ||
+                                     userName ||
+                                     'Пользователь'
+                    const localAvatar = localStorage.getItem('userAvatar') || 
+                                       userData?.avatar || 
+                                       defaultData.image
+                    setUserNameState(localName)
+                    setUserAvatar(localAvatar)
+                }
             }
         }
         
         loadUserData()
     }, [userData, userName])
 
-    // Слушаем изменения в localStorage
+    // Слушаем обновления данных пользователя
     useEffect(() => {
-        const handleStorageChange = () => {
-            const updatedName = localStorage.getItem('userName') || localStorage.getItem('userDisplayName')
-            const updatedAvatar = localStorage.getItem('userAvatar')
+        const handleUserDataUpdate = (event) => {
+            const { userId } = event.detail || {}
+            if (!userId || (currentUserId && userId !== currentUserId)) return
+            
+            const updatedName = userStorage.getUserName(currentUserId)
+            const updatedAvatar = userStorage.getUserAvatar(currentUserId)
             
             if (updatedName && updatedName !== userNameState) {
                 setUserNameState(updatedName)
@@ -69,46 +95,16 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
             }
         }
         
-        window.addEventListener('storage', handleStorageChange)
-        
-        const interval = setInterval(() => {
-            const updatedName = localStorage.getItem('userName') || localStorage.getItem('userDisplayName')
-            const updatedAvatar = localStorage.getItem('userAvatar')
-            
-            if (updatedName && updatedName !== userNameState) {
-                setUserNameState(updatedName)
-            }
-            if (updatedAvatar && updatedAvatar !== userAvatar) {
-                setUserAvatar(updatedAvatar)
-            }
-        }, 2000)
+        window.addEventListener('userDataUpdate', handleUserDataUpdate)
         
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
-            clearInterval(interval)
+            window.removeEventListener('userDataUpdate', handleUserDataUpdate)
         }
-    }, [userNameState, userAvatar])
+    }, [currentUserId, userNameState, userAvatar])
 
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000)
         return () => clearInterval(timer)
-    }, [])
-
-    // Подсчет непрочитанных уведомлений
-    useEffect(() => {
-        const unread = notificationsList.filter(n => !n.read).length
-        setUnreadCount(unread)
-    }, [notificationsList])
-
-    // Закрытие модального окна уведомлений при клике вне его
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (notificationRef.current && !notificationRef.current.contains(event.target)) {
-                setShowNotifications(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
     // Закрытие модального окна профиля при клике вне его
@@ -141,10 +137,6 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
         setShowProfileModal(true)
     }
 
-    const handleCloseProfileModal = () => {
-        setShowProfileModal(false)
-    }
-
     const handleLogoClick = () => {
         if (onPageChange) {
             if (currentUser?.role === 'supervisor') {
@@ -157,32 +149,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
         }
     }
 
-    const handleNoticeClick = () => {
-        setShowNotifications(!showNotifications)
-    }
-
-    const handleNotificationClick = (id) => {
-        setNotificationsList(prev => 
-            prev.map(notif => 
-                notif.id === id ? { ...notif, read: true } : notif
-            )
-        )
-        console.log('Нажато уведомление:', id)
-    }
-
-    const handleMarkAllRead = () => {
-        setNotificationsList(prev => 
-            prev.map(notif => ({ ...notif, read: true }))
-        )
-    }
-
-    const handleClearAll = () => {
-        setNotificationsList([])
-        setShowNotifications(false)
-    }
-
     const handleProfileLogout = () => {
         setShowProfileModal(false)
+        userStorage.clearCurrentUserData()
         if (onLogout) {
             onLogout()
         }
@@ -202,19 +171,36 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
     }
 
     const handleUserUpdate = (updatedData) => {
-        if (updatedData.name || updatedData.displayName) {
-            const newName = updatedData.name || updatedData.displayName
-            setUserNameState(newName)
-            localStorage.setItem('userName', newName)
-            localStorage.setItem('userDisplayName', newName)
+        const userId = userStorage.getCurrentUserId()
+        if (userId) {
+            if (updatedData.name || updatedData.displayName) {
+                const newName = updatedData.name || updatedData.displayName
+                userStorage.setUserName(userId, newName)
+                setUserNameState(newName)
+            }
+            if (updatedData.email) {
+                userStorage.setUserEmail(userId, updatedData.email)
+            }
+            if (updatedData.avatar) {
+                userStorage.setUserAvatar(userId, updatedData.avatar)
+                setUserAvatar(updatedData.avatar)
+            }
+        } else {
+            if (updatedData.name || updatedData.displayName) {
+                const newName = updatedData.name || updatedData.displayName
+                localStorage.setItem('userName', newName)
+                localStorage.setItem('userDisplayName', newName)
+                setUserNameState(newName)
+            }
+            if (updatedData.email) {
+                localStorage.setItem('userEmail', updatedData.email)
+            }
+            if (updatedData.avatar) {
+                localStorage.setItem('userAvatar', updatedData.avatar)
+                setUserAvatar(updatedData.avatar)
+            }
         }
-        if (updatedData.email) {
-            localStorage.setItem('userEmail', updatedData.email)
-        }
-        if (updatedData.avatar) {
-            setUserAvatar(updatedData.avatar)
-            localStorage.setItem('userAvatar', updatedData.avatar)
-        }
+        
         if (onUserUpdate) {
             onUserUpdate(updatedData)
         }
@@ -261,69 +247,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                     <span className='leftTwo2'>Смена: 9:00 – 21:00</span>
                 )}
                 <div className='compactRight'>
-                    <div className='bellIcon' style={{ position: 'relative', cursor: 'pointer' }} ref={notificationRef}>
-                        <img onClick={handleNoticeClick} className='bellImage' src={bellIcon} alt='bell' />
-                        {unreadCount > 0 && (
-                            <span className='notification-badge'>
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
-                        
-                        {showNotifications && (
-                            <div className="notifications-modal">
-                                <div className="notifications-header">
-                                    <h3>Уведомления</h3>
-                                    <div className="notifications-actions">
-                                        {notificationsList.length > 0 && (
-                                            <button 
-                                                className="mark-all-read-btn" 
-                                                onClick={handleMarkAllRead}
-                                            >
-                                                Все прочитано
-                                            </button>
-                                        )}
-                                        <button 
-                                            className="close-modal-btn" 
-                                            onClick={() => setShowNotifications(false)}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div className="notifications-list">
-                                    {notificationsList.length === 0 ? (
-                                        <div className="no-notifications">
-                                            <div className="no-notifications-icon"></div>
-                                            <div className="no-notifications-text">Нет уведомлений</div>
-                                        </div>
-                                    ) : (
-                                        notificationsList.map(notif => (
-                                            <div 
-                                                key={notif.id} 
-                                                className={`notification-item ${!notif.read ? 'unread' : ''}`}
-                                                onClick={() => handleNotificationClick(notif.id)}
-                                            >
-                                                <div className="notification-dot"></div>
-                                                <div className="notification-content">
-                                                    <div className="notification-title">{notif.title}</div>
-                                                    <div className="notification-time">{notif.time}</div>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                                
-                                {notificationsList.length > 0 && (
-                                    <div className="notifications-footer">
-                                        <button className="clear-all-btn" onClick={handleClearAll}>
-                                            Очистить все
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    {/* Компонент уведомлений */}
+                    <Notifications className='notif-bell' notifications={[]} />
+                    
                     <div className='user-info-wrapper' onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                         <div className='avatar'>
                             <img className='image' src={finalAvatar} alt='avatar' />

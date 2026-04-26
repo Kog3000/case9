@@ -1,0 +1,242 @@
+/* ReassignOperatorModal.css */
+.reassign-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    animation: fadeIn 0.3s ease;
+}
+
+.reassign-modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.reassign-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef0f5;
+    background: #f8f9ff;
+    border-radius: 20px 20px 0 0;
+}
+
+.reassign-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.reassign-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #8b8f9e;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.reassign-modal-close:hover {
+    background: #eef0f5;
+    color: #1a1f36;
+}
+
+.reassign-modal-form {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1f36;
+    margin-bottom: 12px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #eef0f5;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
+}
+
+.operators-list,
+.pvz-list {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #eef0f5;
+    border-radius: 10px;
+}
+
+.operator-item,
+.pvz-item {
+    padding: 12px;
+    border-bottom: 1px solid #eef0f5;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.operator-item:hover,
+.pvz-item:hover {
+    background: #f8f9ff;
+}
+
+.operator-item.selected,
+.pvz-item.selected {
+    background: #f0f1ff;
+    border-left: 3px solid #342BE2;
+}
+
+.operator-info,
+.pvz-info {
+    flex: 1;
+}
+
+.operator-name,
+.pvz-address {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1f36;
+    margin-bottom: 4px;
+}
+
+.operator-id,
+.pvz-id {
+    display: block;
+    font-size: 11px;
+    color: #8b8f9e;
+}
+
+.operator-current-pvz {
+    font-size: 11px;
+    color: #8b8f9e;
+    margin-top: 4px;
+}
+
+.selected-check {
+    width: 24px;
+    height: 24px;
+    background: #342BE2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    margin-left: 12px;
+}
+
+.no-operators {
+    padding: 40px;
+    text-align: center;
+    color: #8b8f9e;
+    font-size: 14px;
+}
+
+.reassign-preview {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid #eef0f5;
+}
+
+.reassign-preview h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.reassign-preview p {
+    margin: 8px 0;
+    font-size: 13px;
+    color: #424242;
+}
+
+.reassign-preview strong {
+    color: #342BE2;
+}
+
+.reassign-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.reassign-modal-actions button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.reassign-modal-actions .cancel-btn {
+    background: white;
+    border: 1px solid #eef0f5;
+    color: #8b8f9e;
+}
+
+.reassign-modal-actions .cancel-btn:hover {
+    background: #f8f9ff;
+    border-color: #d4d4d4;
+}
+
+.reassign-modal-actions .confirm-btn {
+    background: #342BE2;
+    border: none;
+    color: white;
+}
+
+.reassign-modal-actions .confirm-btn:hover:not(:disabled) {
+    background: #4a42e5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.3);
+}
+
+.reassign-modal-actions .confirm-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+

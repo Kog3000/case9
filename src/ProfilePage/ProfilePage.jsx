@@ -1,7 +1,8 @@
 import './ProfilePage.css'
 import { defaultData } from '../data.js'
 import { useState, useRef, useEffect } from 'react'
-import { updateUserName, updateUserEmail, updateUserAvatar, getCurrentUser } from '../Api/userService.js'
+import { updateUserName, updateUserAvatar, getCurrentUser } from '../Api/userService.js'
+import { userStorage } from '../Api/userStorageService.js'
 
 import cameraIcon from '/assets/camera_icon.svg'
 import penIcon from '/assets/pen_icon.svg'
@@ -14,7 +15,6 @@ import Calendar from '../Calendar/Calendar.jsx'
 export default function ProfilePage({ onBack, onRegister, userData, onLogout, onUserUpdate }) {
     const [isEditing, setIsEditing] = useState(false)
     const [editedName, setEditedName] = useState('')
-    const [editedEmail, setEditedEmail] = useState('')
     const [avatar, setAvatar] = useState('')
     const [selectedDate, setSelectedDate] = useState(null)
     const [showNotification, setShowNotification] = useState(false)
@@ -32,16 +32,41 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
             try {
                 const userFromBackend = await getCurrentUser()
                 if (userFromBackend) {
+                    const userId = userFromBackend.id || userFromBackend.user_id
                     const name = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
                     const email = userFromBackend.email || 'user@example.com'
+                    
                     setUserNameState(name)
                     setUserEmailState(email)
                     setAvatar(userFromBackend.avatar || '')
+                    
+                    // Сохраняем в раздельное хранилище
+                    if (userId) {
+                        userStorage.setCurrentUserId(userId)
+                        userStorage.setUserName(userId, name)
+                        userStorage.setUserEmail(userId, email)
+                        if (userFromBackend.avatar) {
+                            userStorage.setUserAvatar(userId, userFromBackend.avatar)
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Ошибка загрузки:', error)
-                setUserNameState(localStorage.getItem('userName') || userData?.name || 'Пользователь')
-                setUserEmailState(localStorage.getItem('userEmail') || userData?.email || 'user@example.com')
+                // Загружаем из раздельного хранилища
+                const currentUserId = userStorage.getCurrentUserId()
+                if (currentUserId) {
+                    const savedName = userStorage.getUserName(currentUserId)
+                    const savedEmail = userStorage.getUserEmail(currentUserId)
+                    const savedAvatar = userStorage.getUserAvatar(currentUserId)
+                    
+                    setUserNameState(savedName || userData?.name || 'Пользователь')
+                    setUserEmailState(savedEmail || userData?.email || 'user@example.com')
+                    setAvatar(savedAvatar || '')
+                } else {
+                    setUserNameState(localStorage.getItem('userName') || userData?.name || 'Пользователь')
+                    setUserEmailState(localStorage.getItem('userEmail') || userData?.email || 'user@example.com')
+                    setAvatar(localStorage.getItem('userAvatar') || '')
+                }
             }
         }
         loadUserData()
@@ -83,14 +108,12 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
 
     const handleEditProfile = () => {
         setEditedName(displayName)
-        setEditedEmail(userEmail)
         setIsEditing(true)
     }
 
     const handleSaveChanges = async () => {
         let hasChanges = false
         let updatedName = null
-        let updatedEmail = null
         
         setIsLoading(true)
 
@@ -104,28 +127,16 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                 
                 await updateUserName(editedName)
                 
-                localStorage.setItem('userName', editedName)
-                localStorage.setItem('userDisplayName', editedName)
+                // Сохраняем в раздельное хранилище
+                const currentUserId = userStorage.getCurrentUserId()
+                if (currentUserId) {
+                    userStorage.setUserName(currentUserId, editedName)
+                }
                 
                 setUserNameState(editedName)
                 updatedName = editedName
                 hasChanges = true
                 showMessage(`Имя успешно изменено на "${editedName}"`)
-            }
-            
-            if (editedEmail && editedEmail !== userEmail) {
-                if (!editedEmail.includes('@')) {
-                    showMessage('Введите корректный email', 'error')
-                    setIsLoading(false)
-                    return
-                }
-                
-                await updateUserEmail(editedEmail)
-                localStorage.setItem('userEmail', editedEmail)
-                setUserEmailState(editedEmail)
-                updatedEmail = editedEmail
-                hasChanges = true
-                showMessage(`Email успешно изменен на "${editedEmail}"`)
             }
             
             if (!hasChanges) {
@@ -135,8 +146,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
             if (hasChanges && onUserUpdate) {
                 onUserUpdate({ 
                     name: updatedName,
-                    displayName: updatedName,
-                    email: updatedEmail 
+                    displayName: updatedName
                 })
             }
             
@@ -146,7 +156,11 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
         } finally {
             setIsLoading(false)
             setIsEditing(false)
-            window.dispatchEvent(new Event('storage'))
+            // Отправляем событие обновления
+            const currentUserId = userStorage.getCurrentUserId()
+            window.dispatchEvent(new CustomEvent('userDataUpdate', { 
+                detail: { userId: currentUserId }
+            }))
         }
     }
 
@@ -175,13 +189,18 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
         const reader = new FileReader()
         reader.onloadend = () => {
             setAvatar(reader.result)
-            localStorage.setItem('userAvatar', reader.result)
+            
+            const currentUserId = userStorage.getCurrentUserId()
+            if (currentUserId) {
+                userStorage.setUserAvatar(currentUserId, reader.result)
+            }
+            
             if (onUserUpdate) onUserUpdate({ avatar: reader.result })
         }
         reader.readAsDataURL(file)
         
         try {
-            const result = await updateUserAvatar(file)
+            await updateUserAvatar(file)
             showMessage('Аватар успешно обновлен')
         } catch (error) {
             console.error('Ошибка при загрузке аватара:', error)
@@ -230,7 +249,6 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                             {!isEditing ? (
                                 <>
                                     <div className='user-name'>{displayName}</div>
-                                    <div className='user-login'>{userLogin}</div>
                                     <div className='user-email'>{userEmail}</div>
                                     <div className='user-role-badge'>{getRoleDisplay()}</div>
                                 </>
@@ -249,14 +267,16 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                                     </div>
                                     <div className='edit-field'>
                                         <label>Email</label>
-                                        <input 
-                                            type='email' 
-                                            value={editedEmail} 
-                                            onChange={(e) => setEditedEmail(e.target.value)}
-                                            className='edit-input'
-                                            disabled={isLoading}
-                                            placeholder="example@mail.com"
-                                        />
+                                        <div className='email-display-field'>
+                                            <input 
+                                                type='email' 
+                                                value={userEmail} 
+                                                className='edit-input email-readonly'
+                                                disabled={true}
+                                                readOnly
+                                            />
+                                            <span className='readonly-badge'>Неизменяемое поле</span>
+                                        </div>
                                     </div>
                                     <div className='edit-actions'>
                                         <button 

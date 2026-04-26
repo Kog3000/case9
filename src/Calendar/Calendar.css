@@ -1,6 +1,6 @@
 .custom-calendar {
     width: 100%;
-    background: white;
+    background: transparent;
     border-radius: 16px;
     padding: 20px;
     font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
@@ -74,7 +74,7 @@
 }
 
 .calendar-day:hover:not(.empty) {
-    background: #f0f1ff;
+    background: #e8e7f0;
     transform: scale(1.05);
 }
 
@@ -135,7 +135,7 @@
     color: #342BE2;
     border: none;
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;

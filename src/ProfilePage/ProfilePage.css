@@ -13,7 +13,7 @@
 
 /* Общая карточка для профиля и календаря */
 .profile-card {
-  background: white;
+  background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   border: 1px solid #eef0f5;
@@ -213,6 +213,53 @@
   outline: none;
   border-color: #342BE2;
   box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
+}
+
+/* Стили для неизменяемого поля email */
+.email-display-field {
+  position: relative;
+  width: 100%;
+}
+
+.email-readonly {
+  background-color: #f8f9fa !important;
+  cursor: not-allowed !important;
+  color: #6c757d !important;
+  border-color: #e9ecef !important;
+  padding-right: 110px !important;
+}
+
+.email-readonly:focus {
+  outline: none;
+  border-color: #e9ecef !important;
+  box-shadow: none !important;
+}
+
+.readonly-badge {
+  position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #999;
+    background-color: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+/* Альтернативный стиль бейджа (если нужен другой вариант) */
+.readonly-badge-alt {
+  background: #f0f1ff;
+  color: #342BE2;
+  box-shadow: none;
+  border: 1px solid #e0e3ff;
+}
+
+/* При наведении на disabled поле */
+.edit-input.email-readonly:hover {
+  background-color: #f8f9fa !important;
+  border-color: #e9ecef !important;
 }
 
 .edit-actions {
@@ -492,3 +539,4 @@
     background-color: #f5f5f5;
     cursor: not-allowed;
 }
+

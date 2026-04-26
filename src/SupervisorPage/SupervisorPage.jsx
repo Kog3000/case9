@@ -1,14 +1,16 @@
-// src/SupervizerPage/SupervizerPage.jsx
 import { useState, useEffect } from 'react';
 import { getSupervisorDeliveries, getDeliveriesForRedirect, changeDelivery } from '../Api/deliveries';
+import { changeOperatorPvz, getOperatorsList, getPvzList } from '../Api/operatorService.js';
 import Order from './Orders/Order';
 import RedirectModal from './RedirectModal/RedirectModal';
+import ReassignOperatorModal from '../ReassignOperatorModal.jsx';
 import './SupervisorPage.css';
 import CustomBarChart from './CustomBar/CustomBarChart'
 import Button from '../Button/Button'
 import ProfilePage from '../ProfilePage/ProfilePage';
+import { userStorage } from '../Api/userStorageService.js';
 
-export default function SupervisorPage({ userData, onLogout }) {
+export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
   // Фильтры для заказов
   const [pvzId, setPvzId] = useState('');
   const [date, setDate] = useState('');
@@ -21,15 +23,70 @@ export default function SupervisorPage({ userData, onLogout }) {
   const [chartPvzId, setChartPvzId] = useState('');
   const [chartDate, setChartDate] = useState('');
   const [chartError, setChartError] = useState('');
-  const [chartKey, setChartKey] = useState(0);
+  const [shouldLoadChart, setShouldLoadChart] = useState(false);
 
   // Состояние для модального окна профиля
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState(userData);
 
   // Модальное окно перенаправления
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [deliveriesList, setDeliveriesList] = useState([]);
+
+  // Модальное окно перезакрепления оператора
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [operatorsList, setOperatorsList] = useState([]);
+  const [pvzList, setPvzList] = useState([]);
+  const [loadingOperators, setLoadingOperators] = useState(false);
+
+  // Загрузка данных супервизора
+  useEffect(() => {
+    const loadSupervisorData = async () => {
+      const userId = userStorage.getCurrentUserId()
+      if (userId) {
+        const savedData = userStorage.getUserData(userId)
+        if (savedData) {
+          setCurrentUserData(prev => ({ ...prev, ...savedData }))
+        }
+      }
+    }
+    loadSupervisorData()
+  }, [])
+
+  // Загрузка списка операторов и ПВЗ при открытии модалки
+  const loadOperatorsAndPvz = async () => {
+    setLoadingOperators(true);
+    try {
+      const [operators, pvz] = await Promise.all([
+        getOperatorsList(),
+        getPvzList()
+      ]);
+      setOperatorsList(operators);
+      setPvzList(pvz);
+    } catch (error) {
+      console.error('Ошибка загрузки данных:', error);
+      setError('Не удалось загрузить список операторов');
+    } finally {
+      setLoadingOperators(false);
+    }
+  };
+
+  const handleOpenReassignModal = () => {
+    setIsReassignModalOpen(true);
+    loadOperatorsAndPvz();
+  };
+
+  const handleReassignOperator = async (operatorId, newPvzId) => {
+    try {
+      const result = await changeOperatorPvz(operatorId, newPvzId);
+      setSuccess(`Оператор успешно перезакреплен`);
+      return result;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    }
+  };
 
   const getErrorMessage = (err) => {
     if (err.response?.data?.detail) {
@@ -71,23 +128,26 @@ export default function SupervisorPage({ userData, onLogout }) {
   const handleChartSearch = () => {
     if (!chartPvzId || !chartDate) {
       setChartError('Заполните ID ПВЗ и дату для диаграммы');
+      setShouldLoadChart(false);
       return;
     }
     
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(chartDate)) {
       setChartError('Неверный формат даты. Используйте ГГГГ-ММ-ДД');
+      setShouldLoadChart(false);
       return;
     }
     
     const year = parseInt(chartDate.split('-')[0]);
     if (year < 2000 || year > 2100) {
       setChartError('Пожалуйста, выберите корректную дату (год должен быть между 2000 и 2100)');
+      setShouldLoadChart(false);
       return;
     }
     
     setChartError('');
-    setChartKey(prev => prev + 1);
+    setShouldLoadChart(true);
   };
 
   const openRedirectModal = async (orderId) => {
@@ -117,12 +177,36 @@ export default function SupervisorPage({ userData, onLogout }) {
     }
   };
 
+  const handleUserUpdate = (updatedData) => {
+    const userId = userStorage.getCurrentUserId()
+    if (userId) {
+      userStorage.updateUserData(userId, updatedData)
+    }
+    setCurrentUserData(prev => ({ ...prev, ...updatedData }))
+    if (onUserUpdate) {
+      onUserUpdate(updatedData)
+    }
+  }
+
   // Обработчик выхода из профиля
   const handleProfileLogout = () => {
     setIsProfileModalOpen(false);
+    userStorage.clearCurrentUserData();
     if (onLogout) {
       onLogout();
     }
+  };
+
+  const handleChartPvzIdChange = (e) => {
+    setChartPvzId(e.target.value);
+    setShouldLoadChart(false);
+    setChartError('');
+  };
+
+  const handleChartDateChange = (e) => {
+    setChartDate(e.target.value);
+    setShouldLoadChart(false);
+    setChartError('');
   };
 
   return (
@@ -145,6 +229,14 @@ export default function SupervisorPage({ userData, onLogout }) {
         />
         <Button onClick={handleSearch} className="search-btn" content='Показать заказы'></Button>
         <Button content='Отчёт в CSV'></Button>
+        
+        {/* Кнопка для перезакрепления оператора */}
+        <Button 
+          onClick={handleOpenReassignModal} 
+          className="reassign-btn" 
+          content='Перезакрепить оператора'
+          variant="full"
+        />
       </div>
 
       {loading && <div>Загрузка заказов...</div>}
@@ -179,13 +271,13 @@ export default function SupervisorPage({ userData, onLogout }) {
                   type="number"
                   placeholder="ID ПВЗ"
                   value={chartPvzId}
-                  onChange={(e) => setChartPvzId(e.target.value)}
+                  onChange={handleChartPvzIdChange}
                   className="filter-input first"
                 />
                 <input
                   type="date"
                   value={chartDate}
-                  onChange={(e) => setChartDate(e.target.value)}
+                  onChange={handleChartDateChange}
                   className="filter-input second"
                 />
               </div>
@@ -199,9 +291,9 @@ export default function SupervisorPage({ userData, onLogout }) {
           </div>
           
           <div className='customBarChart'>
-            {(chartPvzId && chartDate) ? (
+            {shouldLoadChart && chartPvzId && chartDate ? (
               <CustomBarChart
-                key={chartKey}
+                key={`${chartPvzId}-${chartDate}`}
                 pvzId={chartPvzId}
                 selectedDate={chartDate}
               />
@@ -223,6 +315,15 @@ export default function SupervisorPage({ userData, onLogout }) {
         orderId={selectedOrderId}
       />
 
+      {/* Модальное окно перезакрепления оператора */}
+      <ReassignOperatorModal
+        isOpen={isReassignModalOpen}
+        onClose={() => setIsReassignModalOpen(false)}
+        onConfirm={handleReassignOperator}
+        operators={operatorsList}
+        pvzList={pvzList}
+      />
+
       {/* Модальное окно профиля */}
       {isProfileModalOpen && (
         <div className="profile-modal-overlay" onClick={() => setIsProfileModalOpen(false)}>
@@ -231,13 +332,12 @@ export default function SupervisorPage({ userData, onLogout }) {
               className="profile-modal-close" 
               onClick={() => setIsProfileModalOpen(false)}
             >
-              ×
             </button>
             <ProfilePage 
               onBack={() => setIsProfileModalOpen(false)}
               onLogout={handleProfileLogout}
-              userData={userData}
-              onUserUpdate={handleUserUpdate}  // Добавьте эту строку
+              userData={currentUserData}
+              onUserUpdate={handleUserUpdate}
             />
           </div>
         </div>
