@@ -387,15 +387,13 @@
   margin-top: 8px;
 }
 
-/* Плашка уведомления */
+/* Стили для уведомлений */
 .notification-toast {
   position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: #2ecc71;
-  color: white;
-  padding: 12px 24px;
+  padding: 14px 24px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -404,48 +402,93 @@
   font-weight: 500;
   z-index: 1100;
   animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   pointer-events: none;
+  max-width: 90%;
+  min-width: 280px;
 }
 
 .notification-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   filter: brightness(0) invert(1);
+  flex-shrink: 0;
 }
 
-.notification-toast-bottom-left {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
+/* Типы уведомлений */
+.notification-toast.success {
   background: #2ecc71;
   color: white;
-  padding: 10px 20px;
+  border-left: 4px solid #27ae60;
+}
+
+.notification-toast.error {
+  background: #e74c3c;
+  color: white;
+  border-left: 4px solid #c0392b;
+}
+
+.notification-toast.warning {
+  background: #f39c12;
+  color: white;
+  border-left: 4px solid #e67e22;
+}
+
+.notification-toast.info {
+  background: #3498db;
+  color: white;
+  border-left: 4px solid #2980b9;
+}
+
+/* Альтернативная позиция для уведомлений (слева снизу) */
+.notification-toast-bottom-left {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  transform: translateX(0);
+  padding: 12px 20px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
   font-weight: 500;
+  z-index: 1100;
   animation: slideInLeft 0.3s ease, fadeOutLeft 0.3s ease 2.7s forwards;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: none;
+  max-width: 90%;
 }
 
-/* Типы уведомлений */
-.notification-toast.success {
+.notification-toast-bottom-left.success {
   background: #2ecc71;
+  color: white;
 }
 
-.notification-toast.error {
+.notification-toast-bottom-left.error {
   background: #e74c3c;
+  color: white;
 }
 
-.notification-toast.warning {
+.notification-toast-bottom-left.warning {
   background: #f39c12;
+  color: white;
 }
 
-.notification-toast.info {
+.notification-toast-bottom-left.info {
   background: #3498db;
+  color: white;
 }
 
+/* Disabled состояние для кнопок */
+.save-btn:disabled,
+.cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.edit-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}

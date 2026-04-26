@@ -3,15 +3,91 @@ import { defaultData, notifications } from '../data.js'
 import { useState, useEffect, useRef } from 'react'
 import bellIcon from '../../assets/bell_icon.svg'
 import ProfilePage from '../ProfilePage/ProfilePage'
+import { getCurrentUser } from '../Api/userService.js'
 
-export default function Header({ onPageChange, currentPage, userName, userData, onLogout }) {
+export default function Header({ onPageChange, currentPage, userName, userData, onLogout, onUserUpdate }) {
     const [now, setNow] = useState(new Date())
     const [unreadCount, setUnreadCount] = useState(0)
     const [showNotifications, setShowNotifications] = useState(false)
     const [showProfileModal, setShowProfileModal] = useState(false)
     const [notificationsList, setNotificationsList] = useState(notifications)
+    const [currentUser, setCurrentUser] = useState(userData)
+    const [userNameState, setUserNameState] = useState('')
+    const [userAvatar, setUserAvatar] = useState('')
     const notificationRef = useRef(null)
     const profileModalRef = useRef(null)
+
+    // Загрузка данных пользователя с бэкенда
+    useEffect(() => {
+        const loadUserData = async () => {
+            try {
+                const userFromBackend = await getCurrentUser()
+                if (userFromBackend) {
+                    setCurrentUser(prev => ({ ...prev, ...userFromBackend }))
+                    // Подгружаем name
+                    const userName = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
+                    setUserNameState(userName)
+                    setUserAvatar(userFromBackend.avatar || defaultData.image)
+                    
+                    // Сохраняем в localStorage
+                    localStorage.setItem('userName', userName)
+                    localStorage.setItem('userDisplayName', userName)
+                    if (userFromBackend.avatar) {
+                        localStorage.setItem('userAvatar', userFromBackend.avatar)
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки данных пользователя:', error)
+                const localName = localStorage.getItem('userName') || 
+                                 localStorage.getItem('userDisplayName') ||
+                                 userData?.name ||
+                                 userData?.displayName ||
+                                 userName ||
+                                 'Пользователь'
+                const localAvatar = localStorage.getItem('userAvatar') || 
+                                   userData?.avatar || 
+                                   defaultData.image
+                setUserNameState(localName)
+                setUserAvatar(localAvatar)
+            }
+        }
+        
+        loadUserData()
+    }, [userData, userName])
+
+    // Слушаем изменения в localStorage
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const updatedName = localStorage.getItem('userName') || localStorage.getItem('userDisplayName')
+            const updatedAvatar = localStorage.getItem('userAvatar')
+            
+            if (updatedName && updatedName !== userNameState) {
+                setUserNameState(updatedName)
+            }
+            if (updatedAvatar && updatedAvatar !== userAvatar) {
+                setUserAvatar(updatedAvatar)
+            }
+        }
+        
+        window.addEventListener('storage', handleStorageChange)
+        
+        const interval = setInterval(() => {
+            const updatedName = localStorage.getItem('userName') || localStorage.getItem('userDisplayName')
+            const updatedAvatar = localStorage.getItem('userAvatar')
+            
+            if (updatedName && updatedName !== userNameState) {
+                setUserNameState(updatedName)
+            }
+            if (updatedAvatar && updatedAvatar !== userAvatar) {
+                setUserAvatar(updatedAvatar)
+            }
+        }, 2000)
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange)
+            clearInterval(interval)
+        }
+    }, [userNameState, userAvatar])
 
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000)
@@ -71,9 +147,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
 
     const handleLogoClick = () => {
         if (onPageChange) {
-            if (userData?.role === 'supervisor') {
+            if (currentUser?.role === 'supervisor') {
                 onPageChange('supervisor')
-            } else if (userData?.role === 'analyst') {
+            } else if (currentUser?.role === 'analyst') {
                 onPageChange('analyst')
             } else {
                 onPageChange('main')
@@ -115,10 +191,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
     const handleProfileBack = () => {
         setShowProfileModal(false)
         if (onPageChange) {
-            // Возвращаемся на предыдущую страницу
-            if (userData?.role === 'supervisor') {
+            if (currentUser?.role === 'supervisor') {
                 onPageChange('supervisor')
-            } else if (userData?.role === 'analyst') {
+            } else if (currentUser?.role === 'analyst') {
                 onPageChange('analyst')
             } else {
                 onPageChange('main')
@@ -126,20 +201,48 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
         }
     }
 
-    const displayName = userData?.displayName || localStorage.getItem('userDisplayName') || 'Пользователь'
-    
+    const handleUserUpdate = (updatedData) => {
+        if (updatedData.name || updatedData.displayName) {
+            const newName = updatedData.name || updatedData.displayName
+            setUserNameState(newName)
+            localStorage.setItem('userName', newName)
+            localStorage.setItem('userDisplayName', newName)
+        }
+        if (updatedData.email) {
+            localStorage.setItem('userEmail', updatedData.email)
+        }
+        if (updatedData.avatar) {
+            setUserAvatar(updatedData.avatar)
+            localStorage.setItem('userAvatar', updatedData.avatar)
+        }
+        if (onUserUpdate) {
+            onUserUpdate(updatedData)
+        }
+    }
+
     let roleDisplay = 'Оператор'
-    if (userData?.role === 'supervisor') {
+    if (currentUser?.role === 'supervisor') {
         roleDisplay = 'Супервайзер'
-    } else if (userData?.role === 'analyst') {
+    } else if (currentUser?.role === 'analyst') {
         roleDisplay = 'Аналитик'
+    } else if (currentUser?.role === 'operator') {
+        roleDisplay = 'Оператор'
     }
     
-    // Определяем, оператор ли пользователь
-    const isOperator = userData?.role === 'operator'
-    const pvzAddress = userData?.pvz?.address || 'ПВЗ №?'
-    const workStart = userData?.pvz?.work_start || '10:00'
-    const workEnd = userData?.pvz?.work_end || '22:00'
+    const isOperator = currentUser?.role === 'operator'
+    const pvzAddress = currentUser?.pvz?.address || userData?.pvz?.address || localStorage.getItem('pvzAddress') || 'ПВЗ №1'
+    const workStart = currentUser?.pvz?.work_start || userData?.pvz?.work_start || '10:00'
+    const workEnd = currentUser?.pvz?.work_end || userData?.pvz?.work_end || '22:00'
+
+    const finalDisplayName = userNameState || 
+                            currentUser?.name || 
+                            currentUser?.displayName || 
+                            userData?.name ||
+                            userData?.displayName ||
+                            userName || 
+                            'Пользователь'
+    
+    const finalAvatar = userAvatar || currentUser?.avatar || userData?.avatar || defaultData.image
 
     return(
         <>
@@ -166,7 +269,6 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                             </span>
                         )}
                         
-                        {/* Модальное окно уведомлений */}
                         {showNotifications && (
                             <div className="notifications-modal">
                                 <div className="notifications-header">
@@ -224,11 +326,11 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                     </div>
                     <div className='user-info-wrapper' onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                         <div className='avatar'>
-                            <img className='image' src={userData?.avatar || defaultData.image} alt='avatar' />
+                            <img className='image' src={finalAvatar} alt='avatar' />
                         </div>
                         <div className='user-details'>
                             <div className='user-name'>
-                                {displayName}
+                                {finalDisplayName}
                             </div>
                             <div className='user-role'>
                                 {roleDisplay}
@@ -238,14 +340,14 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                 </div>
             </header>
 
-            {/* Модальное окно профиля */}
             {showProfileModal && (
                 <div className="profile-modal-overlay">
                     <div className="profile-modal-container" ref={profileModalRef}>
                         <ProfilePage 
                             onBack={handleProfileBack}
                             onLogout={handleProfileLogout}
-                            userData={userData}
+                            userData={currentUser}
+                            onUserUpdate={handleUserUpdate}
                         />
                     </div>
                 </div>
