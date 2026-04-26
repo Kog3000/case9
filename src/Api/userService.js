@@ -56,12 +56,7 @@ export async function getCurrentUser() {
             throw new Error('Ошибка получения данных пользователя');
         }
         
-        const userData = await response.json();
-        
-        // Выводим в консоль для отладки
-        console.log('User data from backend:', userData);
-        
-        return userData;
+        return response.json();
     } catch (error) {
         console.error('Get current user error:', error);
         throw error;
@@ -69,8 +64,8 @@ export async function getCurrentUser() {
 }
 
 export async function updateUserName(newName) {
-    if (!newName || newName.length < 2) {
-        throw new Error('Имя должно содержать минимум 2 символа');
+    if (!newName || newName.length < 3) {
+        throw new Error('Имя должно содержать минимум 3 символа');
     }
     
     return apiRequest(`/users/update_name?new_name=${encodeURIComponent(newName)}`, {
@@ -110,5 +105,18 @@ export async function updateUserAvatar(file) {
     } catch (error) {
         console.error('Avatar upload error:', error);
         throw new Error('Не удалось загрузить аватар');
+    }
+}
+
+export async function checkServerConnection() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(5000)
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Server connection failed:', error);
+        return false;
     }
 }

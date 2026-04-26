@@ -237,6 +237,7 @@ export default function SupervisorPage({ userData, onLogout }) {
               onBack={() => setIsProfileModalOpen(false)}
               onLogout={handleProfileLogout}
               userData={userData}
+              onUserUpdate={handleUserUpdate}  // Добавьте эту строку
             />
           </div>
         </div>

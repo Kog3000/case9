@@ -24,72 +24,40 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
     const [isLoading, setIsLoading] = useState(false)
     const [userNameState, setUserNameState] = useState('')
     const [userEmailState, setUserEmailState] = useState('')
-    const [userRoleState, setUserRoleState] = useState('')
-    const [userLoginState, setUserLoginState] = useState('')
     const fileInputRef = useRef(null)
     
-    // Загрузка данных пользователя с бэкенда
+    // Загрузка данных пользователя
     useEffect(() => {
         const loadUserData = async () => {
             try {
                 const userFromBackend = await getCurrentUser()
                 if (userFromBackend) {
-                    // Подгружаем name
                     const name = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
-                    setUserNameState(name)
-                    
-                    // Подгружаем email
                     const email = userFromBackend.email || 'user@example.com'
+                    setUserNameState(name)
                     setUserEmailState(email)
-                    
-                    // Подгружаем role
-                    const role = userFromBackend.role || userFromBackend.user_role || 'operator'
-                    setUserRoleState(role)
-                    
-                    // Подгружаем login
-                    const login = userFromBackend.login || userFromBackend.username || email.split('@')[0] || 'user'
-                    setUserLoginState(login)
-                    
-                    // Подгружаем avatar
                     setAvatar(userFromBackend.avatar || '')
-                    
-                    // Сохраняем в localStorage для синхронизации
-                    localStorage.setItem('userName', name)
-                    localStorage.setItem('userDisplayName', name)
-                    localStorage.setItem('userEmail', email)
-                    localStorage.setItem('userRole', role)
-                    localStorage.setItem('userLogin', login)
-                    if (userFromBackend.avatar) {
-                        localStorage.setItem('userAvatar', userFromBackend.avatar)
-                    }
                 }
             } catch (error) {
-                console.error('Ошибка загрузки данных с бэкенда:', error)
-                // Если бэкенд недоступен, используем данные из localStorage или userData
-                setUserNameState(localStorage.getItem('userName') || userData?.name || userData?.displayName || 'Пользователь')
+                console.error('Ошибка загрузки:', error)
+                setUserNameState(localStorage.getItem('userName') || userData?.name || 'Пользователь')
                 setUserEmailState(localStorage.getItem('userEmail') || userData?.email || 'user@example.com')
-                setUserRoleState(localStorage.getItem('userRole') || userData?.role || 'operator')
-                setUserLoginState(localStorage.getItem('userLogin') || userData?.login || 'user')
-                setAvatar(localStorage.getItem('userAvatar') || userData?.avatar || '')
             }
         }
         loadUserData()
     }, [userData])
 
-    // Используем данные из состояния (с бэкенда) или из props
     const displayName = userNameState || userData?.name || userData?.displayName || localStorage.getItem('userName') || 'Пользователь'
-    const userLogin = userLoginState || userData?.login || localStorage.getItem('userLogin') || 'user'
+    const userLogin = userData?.login || localStorage.getItem('userLogin') || 'user'
     const userEmail = userEmailState || userData?.email || localStorage.getItem('userEmail') || 'user@example.com'
     const userAvatar = avatar || userData?.avatar || localStorage.getItem('userAvatar') || defaultData.image
-    const userRole = userRoleState || userData?.role || localStorage.getItem('userRole') || 'operator'
+    const userRole = userData?.role || localStorage.getItem('userRole') || 'operator'
 
-    // Применение темы
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
         localStorage.setItem('theme', theme)
     }, [theme])
 
-    // Автоматическое скрытие уведомления
     useEffect(() => {
         if (showNotification) {
             const timer = setTimeout(() => {
@@ -127,10 +95,9 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
         setIsLoading(true)
 
         try {
-            // Обновление имени
             if (editedName && editedName !== displayName) {
-                if (editedName.length < 2) {
-                    showMessage('Имя должно содержать минимум 2 символа', 'error')
+                if (editedName.length < 3) {
+                    showMessage('Имя должно содержать минимум 3 символа', 'error')
                     setIsLoading(false)
                     return
                 }
@@ -146,7 +113,6 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                 showMessage(`Имя успешно изменено на "${editedName}"`)
             }
             
-            // Обновление email
             if (editedEmail && editedEmail !== userEmail) {
                 if (!editedEmail.includes('@')) {
                     showMessage('Введите корректный email', 'error')
@@ -166,14 +132,11 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                 showMessage('Нет изменений для сохранения', 'warning')
             }
             
-            // Обновляем данные в родительском компоненте
             if (hasChanges && onUserUpdate) {
                 onUserUpdate({ 
                     name: updatedName,
                     displayName: updatedName,
-                    email: updatedEmail,
-                    role: userRoleState,
-                    login: userLoginState
+                    email: updatedEmail 
                 })
             }
             
@@ -241,7 +204,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
             case 'supervisor': return 'Супервайзер'
             case 'analyst': return 'Аналитик'
             case 'operator': return 'Оператор'
-            default: return userRole || 'Пользователь'
+            default: return 'Пользователь'
         }
     }
 
@@ -267,6 +230,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                             {!isEditing ? (
                                 <>
                                     <div className='user-name'>{displayName}</div>
+                                    <div className='user-login'>{userLogin}</div>
                                     <div className='user-email'>{userEmail}</div>
                                     <div className='user-role-badge'>{getRoleDisplay()}</div>
                                 </>
@@ -280,7 +244,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                                             onChange={(e) => setEditedName(e.target.value)}
                                             className='edit-input'
                                             disabled={isLoading}
-                                            placeholder="Введите имя"
+                                            placeholder="Введите имя (мин. 3 символа)"
                                         />
                                     </div>
                                     <div className='edit-field'>
