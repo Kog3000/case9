@@ -133,7 +133,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
           </p>
           {isOverload && (
             <p className="tooltip-warning">
-              ⚠️ Превышение на {value - capacityPerHour} ед.
+              Превышение на {value - capacityPerHour} ед.
             </p>
           )}
           <p className="tooltip-capacity">

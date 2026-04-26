@@ -9,6 +9,19 @@
   align-items: center;
 }
 
+.filter-input {
+    width: 300px;
+    height: 46px;
+    border-radius: 10px;
+    border: #D4D4D4 solid 1px;
+    padding-left: 20.5px;
+    padding-right: 10px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    color: rgba(0, 0, 0, 0.7);
+}
+
 .search-btn {
   padding: 8px 20px;
   background-color: #342BE2;
@@ -49,6 +62,7 @@
   flex: 1;
   margin-right: 55px; /* ← ОТСТУП СПРАВА 55px ДЛЯ ВСЕЙ СЕКЦИИ */
   min-width: 0;
+  padding-left: 30px;
 }
 
 .customBarChart {
@@ -109,7 +123,7 @@
 .chart-filters {
   background: white;
   margin-top: 25px;
-  padding: 30px;
+  padding: 27px;
   border-radius: 12px;
   /* margin-bottom: 20px; */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
