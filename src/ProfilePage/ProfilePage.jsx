@@ -1,7 +1,7 @@
 import './ProfilePage.css'
 import { defaultData } from '../data.js'
 import { useState, useRef, useEffect } from 'react'
-import { updateUserName, updateUserAvatar, getCurrentUser } from '../Api/userService.js'
+import { updateUserName, updateUserAvatar, fetchUserProfile, parseJwt } from '../Api/userService.js'
 import { userStorage } from '../Api/userStorageService.js'
 
 import cameraIcon from '/assets/camera_icon.svg'
@@ -24,59 +24,69 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
     const [isLoading, setIsLoading] = useState(false)
     const [userNameState, setUserNameState] = useState('')
     const [userEmailState, setUserEmailState] = useState('')
+    const [userId, setUserId] = useState(null)
     const fileInputRef = useRef(null)
     
-    // Загрузка данных пользователя
+    // Загрузка данных пользователя с бэка
     useEffect(() => {
         const loadUserData = async () => {
             try {
-                const userFromBackend = await getCurrentUser()
-                if (userFromBackend) {
-                    const userId = userFromBackend.id || userFromBackend.user_id
-                    const name = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
-                    const email = userFromBackend.email || 'user@example.com'
+                const profile = await fetchUserProfile();
+                console.log('ProfilePage - профиль с бэка:', profile);
+                
+                let userName = profile.name || profile.display_name || profile.username;
+                let userEmail = profile.email;
+                let userAvatarUrl = profile.avatar;
+                let userRole = profile.role;
+                let userIdFromBack = profile.id || profile.user_id;
+                
+                if (userName && userName !== 'Пользователь') {
+                    setUserNameState(userName);
+                    setUserEmailState(userEmail || '');
+                    setAvatar(userAvatarUrl || '');
                     
-                    setUserNameState(name)
-                    setUserEmailState(email)
-                    setAvatar(userFromBackend.avatar || '')
-                    
-                    // Сохраняем в раздельное хранилище
-                    if (userId) {
-                        userStorage.setCurrentUserId(userId)
-                        userStorage.setUserName(userId, name)
-                        userStorage.setUserEmail(userId, email)
-                        if (userFromBackend.avatar) {
-                            userStorage.setUserAvatar(userId, userFromBackend.avatar)
+                    if (userIdFromBack) {
+                        setUserId(userIdFromBack);
+                        userStorage.setCurrentUserId(userIdFromBack.toString());
+                        userStorage.setUserName(userIdFromBack.toString(), userName);
+                        if (userEmail) userStorage.setUserEmail(userIdFromBack.toString(), userEmail);
+                        if (userRole) userStorage.setUserRole(userIdFromBack.toString(), userRole);
+                        if (userAvatarUrl) userStorage.setUserAvatar(userIdFromBack.toString(), userAvatarUrl);
+                    }
+                } else {
+                    // Fallback на токен
+                    const token = localStorage.getItem('access_token');
+                    if (token) {
+                        const tokenData = parseJwt(token);
+                        if (tokenData) {
+                            let fallbackName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                            setUserNameState(fallbackName);
+                            setUserEmailState(tokenData.email || '');
                         }
                     }
                 }
             } catch (error) {
-                console.error('Ошибка загрузки:', error)
-                // Загружаем из раздельного хранилища
-                const currentUserId = userStorage.getCurrentUserId()
-                if (currentUserId) {
-                    const savedName = userStorage.getUserName(currentUserId)
-                    const savedEmail = userStorage.getUserEmail(currentUserId)
-                    const savedAvatar = userStorage.getUserAvatar(currentUserId)
-                    
-                    setUserNameState(savedName || userData?.name || 'Пользователь')
-                    setUserEmailState(savedEmail || userData?.email || 'user@example.com')
-                    setAvatar(savedAvatar || '')
-                } else {
-                    setUserNameState(localStorage.getItem('userName') || userData?.name || 'Пользователь')
-                    setUserEmailState(localStorage.getItem('userEmail') || userData?.email || 'user@example.com')
-                    setAvatar(localStorage.getItem('userAvatar') || '')
+                console.error('ProfilePage - ошибка загрузки:', error);
+                // Fallback на localStorage
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    const tokenData = parseJwt(token);
+                    if (tokenData) {
+                        let fallbackName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                        setUserNameState(fallbackName);
+                        setUserEmailState(tokenData.email || '');
+                    }
                 }
             }
-        }
-        loadUserData()
-    }, [userData])
+        };
+        
+        loadUserData();
+    }, []);
 
-    const displayName = userNameState || userData?.name || userData?.displayName || localStorage.getItem('userName') || 'Пользователь'
-    const userLogin = userData?.login || localStorage.getItem('userLogin') || 'user'
-    const userEmail = userEmailState || userData?.email || localStorage.getItem('userEmail') || 'user@example.com'
-    const userAvatar = avatar || userData?.avatar || localStorage.getItem('userAvatar') || defaultData.image
-    const userRole = userData?.role || localStorage.getItem('userRole') || 'operator'
+    const displayName = userNameState || 'Пользователь'
+    const userEmail = userEmailState || 'user@example.com'
+    const userAvatar = avatar || defaultData.image
+    const userRole = userStorage.getUserRole(userId) || localStorage.getItem('userRole') || userData?.role || 'operator'
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
@@ -125,47 +135,56 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                     return
                 }
                 
-                await updateUserName(editedName)
-                
-                // Сохраняем в раздельное хранилище
-                const currentUserId = userStorage.getCurrentUserId()
-                if (currentUserId) {
-                    userStorage.setUserName(currentUserId, editedName)
+                if (editedName.length > 50) {
+                    showMessage('Имя не должно превышать 50 символов', 'error')
+                    setIsLoading(false)
+                    return
                 }
                 
-                setUserNameState(editedName)
-                updatedName = editedName
-                hasChanges = true
-                showMessage(`Имя успешно изменено на "${editedName}"`)
+                try {
+                    await updateUserName(editedName)
+                    showMessage(`Имя успешно изменено на "${editedName}"`)
+                } catch (apiError) {
+                    console.warn('API ошибка, сохраняем локально:', apiError.message);
+                    showMessage(`Имя "${editedName}" сохранено локально`, 'warning')
+                }
+                
+                const currentUserId = userStorage.getCurrentUserId() || userId;
+                if (currentUserId) {
+                    userStorage.setUserName(currentUserId, editedName);
+                }
+                
+                setUserNameState(editedName);
+                updatedName = editedName;
+                hasChanges = true;
             }
             
             if (!hasChanges) {
-                showMessage('Нет изменений для сохранения', 'warning')
+                showMessage('Нет изменений для сохранения', 'warning');
             }
             
             if (hasChanges && onUserUpdate) {
                 onUserUpdate({ 
                     name: updatedName,
                     displayName: updatedName
-                })
+                });
             }
             
         } catch (error) {
-            console.error('Ошибка при сохранении:', error)
-            showMessage(error.message || 'Произошла ошибка при сохранении', 'error')
+            console.error('Ошибка при сохранении:', error);
+            showMessage(error.message || 'Произошла ошибка при сохранении', 'error');
         } finally {
-            setIsLoading(false)
-            setIsEditing(false)
-            // Отправляем событие обновления
-            const currentUserId = userStorage.getCurrentUserId()
+            setIsLoading(false);
+            setIsEditing(false);
+            const currentUserId = userStorage.getCurrentUserId() || userId;
             window.dispatchEvent(new CustomEvent('userDataUpdate', { 
-                detail: { userId: currentUserId }
-            }))
+                detail: { userId: currentUserId, name: updatedName }
+            }));
         }
     }
 
     const handleCancelEdit = () => {
-        setIsEditing(false)
+        setIsEditing(false);
     }
 
     const handleAvatarClick = () => {
@@ -190,12 +209,16 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
         reader.onloadend = () => {
             setAvatar(reader.result)
             
-            const currentUserId = userStorage.getCurrentUserId()
+            const currentUserId = userStorage.getCurrentUserId() || userId
             if (currentUserId) {
                 userStorage.setUserAvatar(currentUserId, reader.result)
             }
             
             if (onUserUpdate) onUserUpdate({ avatar: reader.result })
+            
+            window.dispatchEvent(new CustomEvent('userDataUpdate', { 
+                detail: { userId: currentUserId, avatar: reader.result }
+            }))
         }
         reader.readAsDataURL(file)
         

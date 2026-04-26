@@ -268,3 +268,61 @@
   background-color: #e8f5e9;
   border-radius: 4px;
 }
+
+/* SupervisorPage.css - добавьте в конец файла */
+
+/* Стили для сообщений */
+.success-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #10b981;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease, fadeOut 0.5s ease 4.5s forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.error-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #ef4444;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease, fadeOut 0.5s ease 4.5s forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.loading-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #3b82f6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    animation: slideInRight 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Альтернативная позиция для сообщений (слева сверху) */
+/* .success-message.left,
+.error-message.left,
+.loading-message.left {
+    left: 20px;
+    right: auto;
+    animation: slideInLeft 0.3s ease, fadeOut 0.5s ease 4.5s forwards;
+} */

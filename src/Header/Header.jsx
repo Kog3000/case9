@@ -1,9 +1,9 @@
 import './Header.css'
-import { defaultData, notifications } from '../data.js'
+import { defaultData } from '../data.js'
 import { useState, useEffect, useRef } from 'react'
 import ProfilePage from '../ProfilePage/ProfilePage'
-import { getCurrentUser } from '../Api/userService.js'
 import { userStorage } from '../Api/userStorageService.js'
+import { fetchUserProfile, parseJwt } from '../Api/userService'
 import Notifications from '../Notifications.jsx'
 
 export default function Header({ onPageChange, currentPage, userName, userData, onLogout, onUserUpdate }) {
@@ -13,212 +13,201 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
     const [userNameState, setUserNameState] = useState('')
     const [userAvatar, setUserAvatar] = useState('')
     const [currentUserId, setCurrentUserId] = useState(null)
+    const [userRole, setUserRole] = useState('')
     const profileModalRef = useRef(null)
 
-    // Загрузка данных пользователя с бэкенда
-    useEffect(() => {
-        const loadUserData = async () => {
-            try {
-                const userFromBackend = await getCurrentUser()
-                if (userFromBackend) {
-                    const userId = userFromBackend.id || userFromBackend.user_id
-                    setCurrentUserId(userId)
-                    userStorage.setCurrentUserId(userId)
+    // Загрузка профиля пользователя с бэка
+    const loadUserProfile = async () => {
+        try {
+            const profile = await fetchUserProfile();
+            console.log('Header - профиль с бэка:', profile);
+            
+            let userName = profile.name || profile.display_name || profile.username;
+            let userId = profile.id || profile.user_id;
+            let role = profile.role;
+            
+            if (userName && userName !== 'Пользователь') {
+                setUserNameState(userName);
+                setUserRole(role);
+                setCurrentUser(prev => ({ ...prev, name: userName, role: role }));
+                
+                if (userId) {
+                    setCurrentUserId(userId);
+                    userStorage.setCurrentUserId(userId.toString());
+                    userStorage.setUserName(userId.toString(), userName);
+                    if (role) userStorage.setUserRole(userId.toString(), role);
                     
-                    setCurrentUser(prev => ({ ...prev, ...userFromBackend }))
-                    
-                    let userName = userStorage.getUserName(userId)
-                    let userAvatar = userStorage.getUserAvatar(userId)
-                    
-                    if (!userName) {
-                        userName = userFromBackend.name || userFromBackend.display_name || 'Пользователь'
-                        userStorage.setUserName(userId, userName)
-                    }
-                    
-                    if (!userAvatar && userFromBackend.avatar) {
-                        userAvatar = userFromBackend.avatar
-                        userStorage.setUserAvatar(userId, userAvatar)
-                    } else if (!userAvatar) {
-                        userAvatar = defaultData.image
-                    }
-                    
-                    setUserNameState(userName)
-                    setUserAvatar(userAvatar)
-                    
-                    if (userFromBackend.role) {
-                        userStorage.setUserRole(userId, userFromBackend.role)
+                    const savedAvatar = userStorage.getUserAvatar(userId);
+                    if (savedAvatar) {
+                        setUserAvatar(savedAvatar);
+                    } else {
+                        setUserAvatar(defaultData.image);
                     }
                 }
-            } catch (error) {
-                console.error('Ошибка загрузки данных пользователя:', error)
-                const savedUserId = userStorage.getCurrentUserId()
-                if (savedUserId) {
-                    const savedName = userStorage.getUserName(savedUserId)
-                    const savedAvatar = userStorage.getUserAvatar(savedUserId)
-                    
-                    setUserNameState(savedName || 'Пользователь')
-                    setUserAvatar(savedAvatar || defaultData.image)
-                    setCurrentUserId(savedUserId)
-                } else {
-                    const localName = localStorage.getItem('userName') || 
-                                     localStorage.getItem('userDisplayName') ||
-                                     userData?.name ||
-                                     userData?.displayName ||
-                                     userName ||
-                                     'Пользователь'
-                    const localAvatar = localStorage.getItem('userAvatar') || 
-                                       userData?.avatar || 
-                                       defaultData.image
-                    setUserNameState(localName)
-                    setUserAvatar(localAvatar)
+            } else {
+                // Fallback на токен
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    const tokenData = parseJwt(token);
+                    if (tokenData) {
+                        let fallbackName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                        setUserNameState(fallbackName);
+                        setUserRole(tokenData.role);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Header - ошибка загрузки профиля:', error);
+            // Fallback на токен
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                const tokenData = parseJwt(token);
+                if (tokenData) {
+                    let userName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                    setUserNameState(userName);
+                    setUserRole(tokenData.role);
                 }
             }
         }
-        
-        loadUserData()
-    }, [userData, userName])
+    };
+
+    // Загрузка данных пользователя
+    useEffect(() => {
+        loadUserProfile();
+    }, []);
 
     // Слушаем обновления данных пользователя
     useEffect(() => {
         const handleUserDataUpdate = (event) => {
-            const { userId } = event.detail || {}
-            if (!userId || (currentUserId && userId !== currentUserId)) return
+            const { userId, name, avatar } = event.detail || {};
+            const targetUserId = userId || currentUserId;
             
-            const updatedName = userStorage.getUserName(currentUserId)
-            const updatedAvatar = userStorage.getUserAvatar(currentUserId)
+            if (!targetUserId) return;
             
-            if (updatedName && updatedName !== userNameState) {
-                setUserNameState(updatedName)
+            if (name && name !== userNameState) {
+                setUserNameState(name);
+                setCurrentUser(prev => ({ ...prev, name: name }));
             }
-            if (updatedAvatar && updatedAvatar !== userAvatar) {
-                setUserAvatar(updatedAvatar)
+            if (avatar && avatar !== userAvatar) {
+                setUserAvatar(avatar);
+                setCurrentUser(prev => ({ ...prev, avatar: avatar }));
             }
-        }
+        };
         
-        window.addEventListener('userDataUpdate', handleUserDataUpdate)
-        
-        return () => {
-            window.removeEventListener('userDataUpdate', handleUserDataUpdate)
-        }
-    }, [currentUserId, userNameState, userAvatar])
+        window.addEventListener('userDataUpdate', handleUserDataUpdate);
+        return () => window.removeEventListener('userDataUpdate', handleUserDataUpdate);
+    }, [currentUserId, userNameState, userAvatar]);
 
     useEffect(() => {
-        const timer = setInterval(() => setNow(new Date()), 1000)
-        return () => clearInterval(timer)
-    }, [])
+        const timer = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
-    // Закрытие модального окна профиля при клике вне его
     useEffect(() => {
         const handleClickOutsideProfile = (event) => {
             if (profileModalRef.current && !profileModalRef.current.contains(event.target)) {
-                setShowProfileModal(false)
+                setShowProfileModal(false);
             }
-        }
+        };
         
         if (showProfileModal) {
-            document.addEventListener('mousedown', handleClickOutsideProfile)
-            return () => document.removeEventListener('mousedown', handleClickOutsideProfile)
+            document.addEventListener('mousedown', handleClickOutsideProfile);
+            return () => document.removeEventListener('mousedown', handleClickOutsideProfile);
         }
-    }, [showProfileModal])
+    }, [showProfileModal]);
 
-    // Блокировка скролла body при открытом модальном окне
     useEffect(() => {
         if (showProfileModal) {
-            document.body.style.overflow = 'hidden'
+            document.body.style.overflow = 'hidden';
         } else {
-            document.body.style.overflow = 'unset'
+            document.body.style.overflow = 'unset';
         }
         return () => {
-            document.body.style.overflow = 'unset'
-        }
-    }, [showProfileModal])
+            document.body.style.overflow = 'unset';
+        };
+    }, [showProfileModal]);
 
     const handleProfileClick = () => {
-        setShowProfileModal(true)
-    }
+        setShowProfileModal(true);
+    };
 
     const handleLogoClick = () => {
         if (onPageChange) {
-            if (currentUser?.role === 'supervisor') {
-                onPageChange('supervisor')
-            } else if (currentUser?.role === 'analyst') {
-                onPageChange('analyst')
+            if (userRole === 'supervisor' || currentUser?.role === 'supervisor') {
+                onPageChange('supervisor');
+            } else if (userRole === 'analyst' || currentUser?.role === 'analyst') {
+                onPageChange('analyst');
             } else {
-                onPageChange('main')
+                onPageChange('main');
             }
         }
-    }
+    };
 
     const handleProfileLogout = () => {
-        setShowProfileModal(false)
-        userStorage.clearCurrentUserData()
+        setShowProfileModal(false);
+        userStorage.clearCurrentUserData();
         if (onLogout) {
-            onLogout()
+            onLogout();
         }
-    }
+    };
 
     const handleProfileBack = () => {
-        setShowProfileModal(false)
+        setShowProfileModal(false);
         if (onPageChange) {
-            if (currentUser?.role === 'supervisor') {
-                onPageChange('supervisor')
-            } else if (currentUser?.role === 'analyst') {
-                onPageChange('analyst')
+            if (userRole === 'supervisor' || currentUser?.role === 'supervisor') {
+                onPageChange('supervisor');
+            } else if (userRole === 'analyst' || currentUser?.role === 'analyst') {
+                onPageChange('analyst');
             } else {
-                onPageChange('main')
+                onPageChange('main');
             }
         }
-    }
+    };
 
     const handleUserUpdate = (updatedData) => {
-        const userId = userStorage.getCurrentUserId()
+        const userId = userStorage.getCurrentUserId() || currentUserId;
         if (userId) {
             if (updatedData.name || updatedData.displayName) {
-                const newName = updatedData.name || updatedData.displayName
-                userStorage.setUserName(userId, newName)
-                setUserNameState(newName)
-            }
-            if (updatedData.email) {
-                userStorage.setUserEmail(userId, updatedData.email)
+                const newName = updatedData.name || updatedData.displayName;
+                userStorage.setUserName(userId, newName);
+                setUserNameState(newName);
+                setCurrentUser(prev => ({ ...prev, name: newName }));
             }
             if (updatedData.avatar) {
-                userStorage.setUserAvatar(userId, updatedData.avatar)
-                setUserAvatar(updatedData.avatar)
+                userStorage.setUserAvatar(userId, updatedData.avatar);
+                setUserAvatar(updatedData.avatar);
+                setCurrentUser(prev => ({ ...prev, avatar: updatedData.avatar }));
             }
-        } else {
-            if (updatedData.name || updatedData.displayName) {
-                const newName = updatedData.name || updatedData.displayName
-                localStorage.setItem('userName', newName)
-                localStorage.setItem('userDisplayName', newName)
-                setUserNameState(newName)
-            }
-            if (updatedData.email) {
-                localStorage.setItem('userEmail', updatedData.email)
-            }
-            if (updatedData.avatar) {
-                localStorage.setItem('userAvatar', updatedData.avatar)
-                setUserAvatar(updatedData.avatar)
+            if (updatedData.role) {
+                userStorage.setUserRole(userId, updatedData.role);
+                setUserRole(updatedData.role);
+                setCurrentUser(prev => ({ ...prev, role: updatedData.role }));
             }
         }
         
         if (onUserUpdate) {
-            onUserUpdate(updatedData)
+            onUserUpdate(updatedData);
         }
-    }
+        
+        window.dispatchEvent(new CustomEvent('userDataUpdate', { 
+            detail: { userId: userId || currentUserId, ...updatedData }
+        }));
+    };
 
-    let roleDisplay = 'Оператор'
-    if (currentUser?.role === 'supervisor') {
-        roleDisplay = 'Супервайзер'
-    } else if (currentUser?.role === 'analyst') {
-        roleDisplay = 'Аналитик'
-    } else if (currentUser?.role === 'operator') {
-        roleDisplay = 'Оператор'
+    let roleDisplay = 'Оператор';
+    const effectiveRole = userRole || currentUser?.role;
+    if (effectiveRole === 'supervisor') {
+        roleDisplay = 'Супервайзер';
+    } else if (effectiveRole === 'analyst') {
+        roleDisplay = 'Аналитик';
+    } else if (effectiveRole === 'operator') {
+        roleDisplay = 'Оператор';
     }
     
-    const isOperator = currentUser?.role === 'operator'
-    const pvzAddress = currentUser?.pvz?.address || userData?.pvz?.address || localStorage.getItem('pvzAddress') || 'ПВЗ №1'
-    const workStart = currentUser?.pvz?.work_start || userData?.pvz?.work_start || '10:00'
-    const workEnd = currentUser?.pvz?.work_end || userData?.pvz?.work_end || '22:00'
+    const isOperator = effectiveRole === 'operator';
+    const pvzAddress = currentUser?.pvz?.address || userData?.pvz?.address || localStorage.getItem('pvzAddress') || 'ПВЗ №1';
+    const workStart = currentUser?.pvz?.work_start || userData?.pvz?.work_start || '10:00';
+    const workEnd = currentUser?.pvz?.work_end || userData?.pvz?.work_end || '22:00';
 
     const finalDisplayName = userNameState || 
                             currentUser?.name || 
@@ -226,9 +215,9 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                             userData?.name ||
                             userData?.displayName ||
                             userName || 
-                            'Пользователь'
+                            'Пользователь';
     
-    const finalAvatar = userAvatar || currentUser?.avatar || userData?.avatar || defaultData.image
+    const finalAvatar = userAvatar || currentUser?.avatar || userData?.avatar || defaultData.image;
 
     return(
         <>
@@ -247,7 +236,6 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                     <span className='leftTwo2'>Смена: 9:00 – 21:00</span>
                 )}
                 <div className='compactRight'>
-                    {/* Компонент уведомлений */}
                     <Notifications className='notif-bell' notifications={[]} />
                     
                     <div className='user-info-wrapper' onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
@@ -279,5 +267,5 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                 </div>
             )}
         </>
-    )
+    );
 }

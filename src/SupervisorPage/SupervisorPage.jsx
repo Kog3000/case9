@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { getSupervisorDeliveries, getDeliveriesForRedirect, changeDelivery } from '../Api/deliveries';
-import { changeOperatorPvz, getOperatorsList, getPvzList } from '../Api/operatorService.js';
+import { changeOperatorPvz, getOperatorsList, getPvzList } from '../Api/operatorService';
+import { fetchUserProfile, parseJwt } from '../Api/userService';
+import { userStorage } from '../Api/userStorageService.js';
 import Order from './Orders/Order';
 import RedirectModal from './RedirectModal/RedirectModal';
-import ReassignOperatorModal from '../ReassignOperatorModal.jsx';
+import ReassignOperatorModal from './ReassignOperatorModal';
 import './SupervisorPage.css';
 import CustomBarChart from './CustomBar/CustomBarChart'
 import Button from '../Button/Button'
 import ProfilePage from '../ProfilePage/ProfilePage';
-import { userStorage } from '../Api/userStorageService.js';
+
 
 export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
-  // Фильтры для заказов
   const [pvzId, setPvzId] = useState('');
   const [date, setDate] = useState('');
   const [orders, setOrders] = useState([]);
@@ -19,44 +20,139 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Отдельные фильтры для диаграммы
   const [chartPvzId, setChartPvzId] = useState('');
   const [chartDate, setChartDate] = useState('');
   const [chartError, setChartError] = useState('');
   const [shouldLoadChart, setShouldLoadChart] = useState(false);
 
-  // Состояние для модального окна профиля
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [currentUserData, setCurrentUserData] = useState(userData);
+  const [currentUserName, setCurrentUserName] = useState('');
 
-  // Модальное окно перенаправления
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [deliveriesList, setDeliveriesList] = useState([]);
 
-  // Модальное окно перезакрепления оператора
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [operatorsList, setOperatorsList] = useState([]);
   const [pvzList, setPvzList] = useState([]);
   const [loadingOperators, setLoadingOperators] = useState(false);
 
-  // Загрузка данных супервизора
+ useEffect(() => {
+    // Принудительно загружаем имя из userStorage при загрузке страницы
+    const userId = userStorage.getCurrentUserId();
+    if (userId) {
+        const savedName = userStorage.getUserName(userId);
+        if (savedName && savedName !== 'Пользователь' && savedName !== 'undefined') {
+            setCurrentUserName(savedName);
+            setCurrentUserData(prev => ({ ...prev, name: savedName, displayName: savedName }));
+            return;
+        }
+    }
+    
+    // Если нет сохраненного имени, загружаем профиль
+    loadUserProfile();
+}, []);
+
+const loadUserProfile = async () => {
+    try {
+        // Сначала проверяем сохраненное имя в userStorage
+        const storedUserId = userStorage.getCurrentUserId();
+        let storedName = null;
+        
+        if (storedUserId) {
+            storedName = userStorage.getUserName(storedUserId);
+            if (storedName && storedName !== 'Пользователь' && storedName !== 'undefined') {
+                console.log('Имя из userStorage:', storedName);
+                setCurrentUserName(storedName);
+                setCurrentUserData(prev => ({ ...prev, name: storedName, displayName: storedName }));
+                return; // Если имя уже есть, не делаем запрос
+            }
+        }
+        
+        // Если нет сохраненного имени, пробуем получить с бэка
+        const profile = await fetchUserProfile();
+        console.log('Профиль с бэка:', profile);
+        
+        let userName = profile.name || profile.display_name || profile.username;
+        
+        // Если имя пришло как undefined или 'undefined', игнорируем
+        if (userName && userName !== 'undefined' && userName !== 'Пользователь') {
+            setCurrentUserName(userName);
+            setCurrentUserData(prev => ({ ...prev, name: userName, displayName: userName }));
+            
+            // Сохраняем в userStorage
+            const userId = profile.id || storedUserId;
+            if (userId) {
+                userStorage.setCurrentUserId(userId.toString());
+                userStorage.setUserName(userId.toString(), userName);
+                if (profile.email) userStorage.setUserEmail(userId.toString(), profile.email);
+                if (profile.role) userStorage.setUserRole(userId.toString(), profile.role);
+            }
+        } else {
+            // Если имя не получено, используем заглушку для супервайзера
+            const role = profile.role || 'supervisor';
+            const defaultName = role === 'supervisor' ? 'Супервайзер' : 'Пользователь';
+            setCurrentUserName(defaultName);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
+        // Последняя попытка - взять имя из токена
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            const tokenData = parseJwt(token);
+            if (tokenData) {
+                let userName = tokenData.name || tokenData.username;
+                if (!userName && tokenData.email) {
+                    userName = tokenData.email.split('@')[0];
+                }
+                if (userName && userName !== 'undefined') {
+                    setCurrentUserName(userName);
+                } else {
+                    setCurrentUserName('Супервайзер');
+                }
+            } else {
+                setCurrentUserName('Супервайзер');
+            }
+        } else {
+            setCurrentUserName('Супервайзер');
+        }
+    }
+};
+
+  // Загрузка данных при монтировании
   useEffect(() => {
-    const loadSupervisorData = async () => {
-      const userId = userStorage.getCurrentUserId()
-      if (userId) {
-        const savedData = userStorage.getUserData(userId)
-        if (savedData) {
-          setCurrentUserData(prev => ({ ...prev, ...savedData }))
+    loadUserProfile();
+  }, []);
+
+  // Слушаем обновления данных пользователя
+  useEffect(() => {
+    const handleUserDataUpdate = (event) => {
+      console.log('Получено событие обновления:', event.detail);
+      const { userId, name } = event.detail || {};
+      
+      if (name) {
+        setCurrentUserName(name);
+        setCurrentUserData(prev => ({ ...prev, name: name, displayName: name }));
+      } else if (userId) {
+        const updatedName = userStorage.getUserName(userId);
+        if (updatedName && updatedName !== 'Пользователь') {
+          setCurrentUserName(updatedName);
+          setCurrentUserData(prev => ({ ...prev, name: updatedName, displayName: updatedName }));
+        } else {
+          loadUserProfile();
         }
       }
-    }
-    loadSupervisorData()
-  }, [])
+    };
+    
+    window.addEventListener('userDataUpdate', handleUserDataUpdate);
+    return () => window.removeEventListener('userDataUpdate', handleUserDataUpdate);
+  }, []);
 
-  // Загрузка списка операторов и ПВЗ при открытии модалки
+  // Загрузка списка операторов и ПВЗ
   const loadOperatorsAndPvz = async () => {
     setLoadingOperators(true);
+    setError('');
     try {
       const [operators, pvz] = await Promise.all([
         getOperatorsList(),
@@ -66,7 +162,14 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
       setPvzList(pvz);
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
-      setError('Не удалось загрузить список операторов');
+      if (error.message === 'Не авторизован' || error.message.includes('сессия истекла')) {
+        setError('Сессия истекла. Пожалуйста, войдите снова.');
+        setTimeout(() => {
+          if (onLogout) onLogout();
+        }, 2000);
+      } else {
+        setError('Не удалось загрузить список операторов: ' + error.message);
+      }
     } finally {
       setLoadingOperators(false);
     }
@@ -98,7 +201,6 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
     return err.message || 'Произошла ошибка';
   };
 
-  // Поиск заказов
   const handleSearch = async () => {
     if (!pvzId || !date) {
       setError('Заполните ID ПВЗ и дату');
@@ -178,17 +280,21 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
   };
 
   const handleUserUpdate = (updatedData) => {
-    const userId = userStorage.getCurrentUserId()
+    const userId = userStorage.getCurrentUserId();
     if (userId) {
-      userStorage.updateUserData(userId, updatedData)
+      userStorage.updateUserData(userId, updatedData);
+      if (updatedData.name || updatedData.displayName) {
+        const newName = updatedData.name || updatedData.displayName;
+        setCurrentUserName(newName);
+        console.log('Имя обновлено на:', newName);
+      }
     }
-    setCurrentUserData(prev => ({ ...prev, ...updatedData }))
+    setCurrentUserData(prev => ({ ...prev, ...updatedData }));
     if (onUserUpdate) {
-      onUserUpdate(updatedData)
+      onUserUpdate(updatedData);
     }
-  }
+  };
 
-  // Обработчик выхода из профиля
   const handleProfileLogout = () => {
     setIsProfileModalOpen(false);
     userStorage.clearCurrentUserData();
@@ -209,10 +315,10 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
     setChartError('');
   };
 
+  const displayName = currentUserName || 'Супервайзер';
+
   return (
     <div className="supervisor-page">
-
-      {/* Блок фильтров для заказов */}
       <div className="filters">
         <input
           type="number"
@@ -230,7 +336,6 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
         <Button onClick={handleSearch} className="search-btn" content='Показать заказы'></Button>
         <Button content='Отчёт в CSV'></Button>
         
-        {/* Кнопка для перезакрепления оператора */}
         <Button 
           onClick={handleOpenReassignModal} 
           className="reassign-btn" 
@@ -244,7 +349,6 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
       {success && <div className="success">{success}</div>}
 
       <div className='content-wrapper'>
-        {/* Список заказов */}
         <div className="orders-section">
           <ul className="ordersList">
             {orders.length > 0 ? (
@@ -261,7 +365,6 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
           </ul>
         </div>
 
-        {/* Блок диаграммы с отдельными фильтрами */}
         <div className="chart-section">
           <div className="chart-filters">
             <h3 className="chart-section-title">Статистика загруженности ПВЗ</h3>
@@ -306,7 +409,6 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
         </div>
       </div>
 
-      {/* Модальное окно перенаправления */}
       <RedirectModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -315,16 +417,15 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
         orderId={selectedOrderId}
       />
 
-      {/* Модальное окно перезакрепления оператора */}
       <ReassignOperatorModal
         isOpen={isReassignModalOpen}
         onClose={() => setIsReassignModalOpen(false)}
         onConfirm={handleReassignOperator}
         operators={operatorsList}
         pvzList={pvzList}
+        isLoading={loadingOperators}
       />
 
-      {/* Модальное окно профиля */}
       {isProfileModalOpen && (
         <div className="profile-modal-overlay" onClick={() => setIsProfileModalOpen(false)}>
           <div className="profile-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -332,6 +433,7 @@ export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
               className="profile-modal-close" 
               onClick={() => setIsProfileModalOpen(false)}
             >
+              ×
             </button>
             <ProfilePage 
               onBack={() => setIsProfileModalOpen(false)}
