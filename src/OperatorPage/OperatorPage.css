@@ -1,18 +1,26 @@
 .content-wrapper {
     display: flex;
     gap: 24px;
-    margin: 0 auto; /* Центрирует весь контент */
+    margin: 0 auto;
     margin-top: 35px;
+    max-width: 1600px;
 }
 
-/* Если у Filters нет своего класса-обертки, добавьте его */
-/* Или можно стилизовать напрямую */
-.content-wrapper > div:first-child {
+/* Фильтры (1-й элемент) */
+.content-wrapper > :nth-child(1) {
     flex-shrink: 0;
-    width: 340px;
+    width: 320px;
 }
 
-.content-wrapper > div:last-child {
+/* Список заказов (2-й элемент) */
+.content-wrapper > :nth-child(2) {
     flex: 1;
-    min-width: 310px;
+    min-width: 556px;
+}
+
+/* Поддержка (3-й элемент) */
+.content-wrapper > :nth-child(3) {
+    flex-shrink: 0;
+    margin-top: 27px;
+    width: 335px;
 }

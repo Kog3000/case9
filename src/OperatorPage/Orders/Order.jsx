@@ -11,6 +11,12 @@ export default function Order({ order, onReceive, onIssue, onReturn }) {
   } else if (order.status === 'returned') {
     statusLabel = 'Возврат';
     statusClass = 'status-returned';
+  } else if (order.status === 'pending') {
+    statusLabel = 'В рассмотрении';
+    statusClass = 'status-pending';
+  } else if (order.status === 'received') {
+    statusLabel = 'Готов к выдаче';
+    statusClass = 'status-received';
   }
 
   return (

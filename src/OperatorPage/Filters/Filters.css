@@ -17,6 +17,14 @@
     color: #424242;
 }
 
+/* Общие стили для всех полей ввода */
+input, 
+.status-select,
+.date-input {
+    font-size: 14px;
+    font-weight: 400;
+}
+
 /* Стили для обычного input (если есть) */
 input {
     width: 300px;
@@ -41,15 +49,50 @@ input {
     cursor: pointer;
     box-sizing: border-box;
     transition: all 0.3s ease;
+    appearance: none; /* Убираем стандартную стрелку */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23424242' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center; /* Стрелка справа, но сдвинута левее */
+    background-size: 16px;
+    color: rgba(0, 0, 0, 0.7); /* Сделано прозрачным */
+    padding-right: 35px; /* Отступ для стрелки */
+}
+
+input:hover {
+    border-color: #342BE2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.1);
+}
+
+/* Hover эффект для select */
+.status-select:hover {
+    border-color: #342BE2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.1);
+}
+
+/* Hover эффект для date-input */
+.date-input:hover {
+    border-color: #342BE2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.1);
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
 }
 
 /* Дополнительные стили для календаря */
+
 .date-input {
     width: 300px;
     height: 46px;
     border-radius: 10px;
     border: #D4D4D4 solid 1px;
     padding-left: 20.5px;
+    padding-right: 10px;
     font-size: 14px;
     box-sizing: border-box;
     transition: all 0.3s ease;
@@ -60,9 +103,22 @@ input {
     padding: 5px;
 }
 
+.date-input:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
+}
+
+/* .date-input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    width: 100%;
+    cursor: pointer;
+} */
+
 .actions {
     margin-top: 10px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
+

@@ -1,0 +1,155 @@
+.support-ticket {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eef0f5;
+    position: sticky;
+    top: 20px;
+    width: 335px;
+    box-sizing: border-box;
+}
+
+.support-header {
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eef0f5;
+}
+
+.support-header h3 {
+    margin: 0 0 6px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.support-header p {
+    margin: 0;
+    font-size: 12px;
+    color: #8b8f9e;
+}
+
+.ticket-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Уменьшено с 14px */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px; /* Уменьшено с 6px */
+}
+
+.form-group label {
+    margin: 0;
+    margin-bottom: 6px; /* Уменьшено с 8px */
+    font-size: 13px;
+    font-weight: 500;
+    color: #424242;
+}
+
+.form-select {
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    border: #D4D4D4 solid 1px;
+    padding-left: 20.5px;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    background-color: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23424242' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center; /* Сдвинуто левее */
+    background-size: 16px;
+    padding-right: 45px; /* Отступ для стрелки */
+    color: rgba(0, 0, 0, 0.7); /* Сделано прозрачным */
+}
+
+.form-select option {
+    color: #1a1f36; /* Обычный цвет для опций */
+}
+
+.form-textarea {
+    padding: 10px 20px;
+    border: 1px solid #D4D4D4;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    background: white;
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 70px; /* Уменьшено с 80px */
+    color: rgba(0, 0, 0, 0.7); /* Сделано прозрачным */
+}
+
+.form-textarea::placeholder {
+    color: rgba(0, 0, 0, 0.4); /* Прозрачный плейсхолдер */
+}
+
+.form-select:hover,
+.form-textarea:hover {
+    border-color: #342BE2;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.1);
+}
+
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
+    color: #1a1f36; /* При фокусе цвет становится обычным */
+}
+
+/* Кастомизированные кнопки приоритета */
+.priority-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.priority-btn {
+    flex: 1;
+    height: 40px;
+    padding: 8px 10px;
+    border: 1px solid;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.priority-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(0.95);
+}
+
+.priority-btn.active {
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Уменьшен отступ перед кнопкой */
+.submit-btn {
+    margin-top: 4px; /* Добавлено */
+}
+
+.success-message {
+    margin-top: 8px; /* Уменьшено с 10px */
+    padding: 10px;
+    background: #2ecc71;
+    color: white;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    animation: slideDown 0.3s ease;
+}

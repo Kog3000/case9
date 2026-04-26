@@ -152,12 +152,12 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                         <span className='leftTwo'>
                             Смена: {workStart} – {workEnd}
                         </span>
+                        <span className='rightOne'>{now.toLocaleTimeString()}</span>
                     </div>
                 ) : (
                     <span className='leftTwo2'>Смена: 9:00 – 21:00</span>
                 )}
                 <div className='compactRight'>
-                    <span className='rightOne'>{now.toLocaleTimeString()}</span>
                     <div className='bellIcon' style={{ position: 'relative', cursor: 'pointer' }} ref={notificationRef}>
                         <img onClick={handleNoticeClick} className='bellImage' src={bellIcon} alt='bell' />
                         {unreadCount > 0 && (
