@@ -77,7 +77,7 @@ export default function SupportTicket({ userData, onSubmit }) {
     return (
         <div className="support-ticket">
             <div className="support-header">
-                <h3>Обращение к супервизору</h3>
+                <h3>Обращение к супервайзеру</h3>
                 <p>Опишите проблему, и мы оперативно ее решим</p>
             </div>
 

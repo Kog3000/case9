@@ -17,11 +17,11 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
   const lastRequestRef = useRef({ pvzId: null, date: null });
 
   const getColorByValue = (value, capacity) => {
-    if (value <= capacity) return '#509F6A'
-    if (value <= capacity * 1.5) return '#809F50'
-    if (value <= capacity * 2) return '#9F6050'
-    if (value <= capacity * 2.5) return '#9a4c4e'
-    return '#AA3B3B'
+    if (value <= capacity) return '#6BBF7A'
+    if (value <= capacity * 1.5) return '#9FBF6A'
+    if (value <= capacity * 2) return '#BF7A6A'
+    if (value <= capacity * 2.5) return '#BA6A6A'
+    return '#CC5A5A'
   }
 
   // Функция проверки валидности даты
@@ -45,16 +45,16 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     if (pvzId && selectedDate && isValidDate(selectedDate)) {
       // Проверяем, не тот же ли запрос уже выполняется
       if (lastRequestRef.current.pvzId === pvzId && lastRequestRef.current.date === selectedDate) {
-        console.log('⚠️ Тот же запрос уже выполняется, пропускаем');
+        console.log('Тот же запрос уже выполняется, пропускаем');
         return;
       }
       
-      console.log('✅ Условия выполнены, загружаем данные для:', { pvzId, selectedDate });
+      console.log('Условия выполнены, загружаем данные для:', { pvzId, selectedDate });
       lastRequestRef.current = { pvzId, date: selectedDate };
       loadData();
     } else {
       // Если данные не валидны - очищаем график
-      console.log('⏸️ Ожидание валидных данных:', { pvzId, selectedDate });
+      console.log('Ожидание валидных данных:', { pvzId, selectedDate });
       if (!loading) {
         setChartData([]);
         setError(null);
@@ -66,7 +66,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
   const loadData = async () => {
     // Дополнительная проверка перед запросом
     if (!pvzId || !selectedDate || !isValidDate(selectedDate)) {
-      console.log('❌ Загрузка отменена: невалидные данные');
+      console.log('Загрузка отменена: невалидные данные');
       return;
     }
 
@@ -75,7 +75,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
     setNoData(false);
     
     try {
-      console.log('🚀 Выполняется запрос...');
+      console.log('Выполняется запрос...');
       const data = await getDailyLoad(pvzId, selectedDate);
       
       if (!isMounted.current) return;
@@ -261,7 +261,7 @@ export default function CustomBarChart({ pvzId, selectedDate }) {
               axisLine={{ stroke: '#ddd' }}
               label={{ value: 'Количество операций', angle: -90, position: 'insideLeft' }}
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#eaf2ff' }} />
             <Bar dataKey="value" radius={[8, 8, 0, 0]} animationDuration={1000}>
               {chartData.map((entry, index) => (
                 <Cell 

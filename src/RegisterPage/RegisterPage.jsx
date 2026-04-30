@@ -72,12 +72,12 @@ export default function RegisterPage({ onRegister, onLoginSuccess }) {
                 
                 {error && (
                     <div className="error-message">
-                        ⚠️ {error}
+                        {error}
                     </div>
                 )}
                 
                 <div className="form-group">
-                    <label className="form-label">Email</label>
+                    <label className="form-label">Введите e-mail</label>
                     <input 
                         className="form-input" 
                         type="email" 
@@ -90,7 +90,7 @@ export default function RegisterPage({ onRegister, onLoginSuccess }) {
                 </div>
                 
                 <div className="form-group">
-                    <label className="form-label">Пароль</label>
+                    <label className="form-label">Введите пароль</label>
                     <input 
                         className="form-input" 
                         type="password" 

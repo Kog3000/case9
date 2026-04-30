@@ -8,7 +8,7 @@
     transition: all 0.3s;
     font-weight: bold;
     color: #fff;
-    background-color: #342BE2;
+    background-color: #2163F6;
     border-radius: 10px;
     box-sizing: border-box;
 }
@@ -34,7 +34,7 @@
     transition: all 0.3s;
     font-weight: bold;
     color: #fff;
-    background-color: #342BE2;
+    background-color: #2163F6;
     border-radius: 10px;
     box-sizing: border-box;
 }
@@ -47,16 +47,16 @@
     cursor: pointer;
     transition: all 0.3s;
     font-weight: bold;
-    color: #342BE2;
+    color: #2163F6;
     background-color: transparent;
-    border: #342BE2 solid 1px;
+    border: #2163F6 solid 1px;
     border-radius: 10px;
     box-sizing: border-box;
 }
 
 .button-empty-short:hover,
 .button-empty-large:hover {
-    background-color: #342BE2;
+    background-color: #2163F6;
     color: #fff;
     transform: translateY(-2px);
 }
@@ -70,9 +70,9 @@
     cursor: pointer;
     transition: all 0.3s;
     font-weight: bold;
-    color: #342BE2;
+    color: #2163F6;
     background-color: transparent;
-    border: #342BE2 solid 1px;
+    border: #2163F6 solid 1px;
     border-radius: 10px;
     box-sizing: border-box;
 }

@@ -1,4 +1,3 @@
-
 /* Элемент списка */
 li {
     width: 596px;
@@ -8,19 +7,67 @@ li {
     justify-content: space-between;
     gap: 8px;
     background-color: #ffffff;
-    border: 1px solid #eef0f5;
+    border: none;
     border-radius: 12px;
     padding: 16px 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 8px 10px -6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-sizing: border-box;
+    position: relative;
 }
 
-/* Hover эффект */
-li:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    border-color: #342BE2;
+/* Отключаем transition для псевдоэлементов */
+li::before,
+li::after {
+    transition: none;
+}
+
+/* Слой 1: Внешняя рамка */
+li::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(135deg, #C5D9F5 0%, #FFFFFF 50%, #C5D9F5 100%);
+    border-radius: 16px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Слой 2: Внутренняя рамка */
+li::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(135deg, #DBE8FB 0%, #FFFFFF 50%, #DBE8FB 100%);
+    border-radius: 15px;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Полностью убираем любые hover эффекты */
+li:hover,
+li:hover::before,
+li:hover::after {
+    transform: none;
+    box-shadow: none;
+    background: none;
+}
+
+/* Явно задаем градиенты при hover, чтобы они не менялись */
+li:hover::before {
+    background: linear-gradient(135deg, #C5D9F5 0%, #FFFFFF 50%, #C5D9F5 100%);
+}
+
+li:hover::after {
+    background: linear-gradient(135deg, #DBE8FB 0%, #FFFFFF 50%, #DBE8FB 100%);
 }
 
 /* Первая строка - все элементы в одну строку */
@@ -28,6 +75,8 @@ li:hover {
     display: flex;
     align-items: baseline;
     gap: 12px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Артикул */
@@ -41,7 +90,7 @@ li:hover {
 .productTitle1 {
     font-size: 17px;
     font-weight: 500;
-    color: #342BE2;
+    color: #2163F6;
 }
 
 .productTitle2 {
@@ -60,8 +109,8 @@ li:hover {
 .productPrice1 {
     font-size: 17px;
     font-weight: 600;
-    color: #342BE2;
-    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    color: #2163F6;
+    margin-left: auto;
     white-space: nowrap;
 }
 
@@ -69,7 +118,7 @@ li:hover {
     font-size: 17px;
     font-weight: 600;
     color: #424242;
-    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    margin-left: auto;
     white-space: nowrap;
 }
 
@@ -77,16 +126,16 @@ li:hover {
     font-size: 17px;
     font-weight: 600;
     color: #AF1F1F;
-    margin-left: auto; /* Автоматический отступ слева, чтобы цена была справа */
+    margin-left: auto;
     white-space: nowrap;
 }
 
 /* Кнопка */
 .productButton {
     padding: 8px 20px;
-    background-color: #4d4d4d;
-    color: white;
-    border: none;
+    background-color: transparent;
+    color: #2163F6;
+    border: 1px solid #2163F6;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
@@ -95,10 +144,13 @@ li:hover {
     width: fit-content;
     min-width: 126px;
     margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
 }
 
 .productButton:hover {
-    background-color: #474747;
+    background-color: #2163F6;
+    color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(69, 68, 76, 0.3);
 }
@@ -127,33 +179,36 @@ li:hover {
 }
 
 .processed-label {
-  margin-left: 10px;
-  padding: 4px 10px;
-  background: #e6f4ea;
-  color: #2e7d32;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-
+    margin-left: 10px;
+    padding: 4px 10px;
+    background: #e6f4ea;
+    color: #2e7d32;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
 }
 
 /* Бейдж статуса */
 .status-badge {
-  margin-left: 12px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
+    margin-left: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
 }
 
 .status-issued {
-  background-color: #e6f4ea;
-  color: #2e7d32;
+    background-color: #e6f4ea;
+    color: #2e7d32;
 }
 
 .status-returned {
-  background-color: #fde7e7;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
+    background-color: #fde7e7;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
 }

@@ -78,10 +78,6 @@ export default function OperatorPage({ userData, onLogout, onUserUpdate }) {
                 </div>
             </div>
 
-            {/* Кнопка для открытия профиля (если нет хедера) */}
-            <button onClick={handleOpenProfile} className="profile-button">
-                Профиль
-            </button>
 
             {/* Модальное окно профиля */}
             {isProfileModalOpen && (

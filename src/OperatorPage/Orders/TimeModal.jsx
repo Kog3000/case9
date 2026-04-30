@@ -5,7 +5,6 @@ import './TimeModal.css';
 export default function TimeModal({ isOpen, onClose, onConfirm }) {
   const [time, setTime] = useState('');
 
-  // Автоматическое выставление текущего времени при открытии модального окна
   useEffect(() => {
     if (isOpen) {
       const now = new Date();
@@ -32,13 +31,22 @@ export default function TimeModal({ isOpen, onClose, onConfirm }) {
   return (
     <div className="modal-backdrop">
       <div className="modal">
-        <h4>Введите время операции (ЧЧ:ММ)</h4>
+        <div className="modal-header">
+          <h4>Введите время операции (ЧЧ:ММ)</h4>
+          <button className="close-btn" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="current-time-hint">
+          Текущее время: {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+        </div>
+        
         <input
           type="time"
           value={time}
           onChange={handleTimeChange}
           autoFocus
         />
+        
         <div className="modal-buttons">
           <button onClick={handleConfirm}>Подтвердить</button>
           <button onClick={onClose}>Отмена</button>

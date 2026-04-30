@@ -1,3 +1,4 @@
+/* TimeModal.css */
 .modal-backdrop {
     position: fixed;
     top: 0;
@@ -9,28 +10,59 @@
     justify-content: center;
     align-items: center;
     z-index: 1100;
+    animation: fadeIn 0.2s ease-out;
 }
 
 .modal {
     background: white;
-    border-radius: 16px;
+    border-radius: 24px;
     padding: 24px;
-    width: 320px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-out;
 }
 
-.modal h4 {
-    margin: 0 0 16px 0;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-header h4 {
+    margin: 0;
     font-size: 16px;
     font-weight: 600;
     color: #1a1f36;
 }
 
+.close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #342BE2;
+    transform: rotate(90deg);
+}
+
 .current-time-hint {
     font-size: 12px;
     color: #8b8f9e;
-    margin: 0 0 12px 0;
-    padding: 8px;
+    margin: 0 0 16px 0;
+    padding: 8px 12px;
     background: #f0f1ff;
     border-radius: 8px;
     text-align: center;
@@ -44,6 +76,7 @@
     font-size: 14px;
     box-sizing: border-box;
     margin-bottom: 20px;
+    transition: all 0.2s ease;
 }
 
 .modal input:focus {
@@ -57,6 +90,7 @@
     gap: 12px;
 }
 
+/* ОРИГИНАЛЬНЫЕ СТИЛИ КНОПОК */
 .modal-buttons button {
     flex: 1;
     padding: 10px 16px;
@@ -80,11 +114,23 @@
 
 .modal-buttons button:last-child {
     background: transparent;
-    color: #666;
-    border: 1px solid #D4D4D4;
+    color: #342BE2;
+    border: 1px solid #342BE2;
 }
 
 .modal-buttons button:last-child:hover {
     background: #f5f5f5;
     transform: translateY(-2px);
+}
+
+/* Стили для time input */
+.modal input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    background: rgba(52, 43, 226, 0.1);
 }

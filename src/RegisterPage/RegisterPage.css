@@ -2,7 +2,7 @@
   max-width: 430px;
   margin: 0 auto;
   /* padding: 40px 20px; */
-  background-color: #F0EFF9;
+  /* background-color: #F0EFF9; */
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -10,17 +10,58 @@
 }
 
 .register-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.85);
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eef0f5;
   width: 100%;
+  position: relative;
+  
+  /* Убираем border-image */
+  border: none;
+  
+  /* Добавляем тень для объема */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+              0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+/* Слой 1: Внешняя рамка (прозрачная, размытая) */
+.register-card::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -15px;
+  background: linear-gradient(135deg, 
+    rgba(197, 217, 245, 0.4) 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(246, 232, 239, 0.4) 100%);
+  border-radius: 35px;
+  z-index: -3;
+  backdrop-filter: blur(2px);
+}
+
+/* Слой 2: Внутренняя рамка (более плотная, но тоже прозрачная) */
+.register-card::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background: linear-gradient(135deg, 
+    rgba(219, 232, 251, 0.6) 0%, 
+    rgba(255, 255, 255, 0.4) 50%, 
+    rgba(246, 232, 239, 0.6) 100%);
+  border-radius: 28px;
+  z-index: -2;
+  box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(1px);
 }
 
 .register-title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1a1f36;
   text-align: center;
   margin: 0 0 32px 0;
@@ -40,15 +81,15 @@
 }
 
 .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 20px; /* Уменьшено с 24px до 20px */
 }
 
 .form-label {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #424242;
-  margin-bottom: 8px;
+  font-size: 13px !important; /* Уменьшено с 14px до 13px */
+  font-weight: 450 !important;
+  color: #424242 !important; /* Менее яркий цвет (было #424242) */
+  margin-bottom: 6px !important;
 }
 
 .form-input {
@@ -58,7 +99,7 @@
   background: #F8F9FF;
   border: 1px solid #eef0f5;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 13px;
   color: #1a1f36;
   transition: all 0.3s ease;
   box-sizing: border-box;
@@ -66,7 +107,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #342BE2;
+  border-color: #2163F6;
   box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
   background: white;
 }
@@ -83,7 +124,7 @@
 
 .forgot-link {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 6px; /* Уменьшено с 8px до 6px */
   font-size: 12px;
   color: #8b8f9e;
   text-decoration: none;
@@ -91,18 +132,18 @@
 }
 
 .forgot-link:hover {
-  color: #342BE2;
+  color: #2163F6;
   text-decoration: underline;
 }
 
 .login-button {
   width: 100%;
   height: 46px;
-  background: #342BE2;
+  background: #2163F6;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 525;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -152,18 +193,18 @@
   width: 100%;
   height: 46px;
   background: white;
-  border: 1px solid #342BE2;
+  border: 1px solid #2163F6;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  color: #342BE2;
+  color: #2163F6;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 16px;
 }
 
 .register-button:hover:not(:disabled) {
-  background: #342BE2;
+  background: #2163F6;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(52, 43, 226, 0.2);
