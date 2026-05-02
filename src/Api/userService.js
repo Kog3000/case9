@@ -1,334 +1,583 @@
 // src/Api/userService.js
 
-const API_BASE_URL = 'https://pvz-backend.onrender.com';
-import { userStorage } from './userStorageService.js';
+export const API_BASE_URL = 'https://pvz-backend.onrender.com';
+const REQUEST_TIMEOUT = 8000;
 
 const getToken = () => localStorage.getItem('access_token');
 
-// Функция для парсинга JWT токена
+export const STORAGE_KEYS = {
+    USER_ID: 'app_user_id',
+    USER_NAME: 'app_user_name',
+    USER_EMAIL: 'app_user_email',
+    USER_ROLE: 'app_user_role',
+    USER_AVATAR: 'app_user_avatar',
+    USER_DISPLAY_NAME: 'app_user_display_name'
+};
+
+export function getFullImageUrl(url) {
+    if (!url) return null;
+
+    // base64 превью оставляем как есть
+    if (typeof url === 'string' && url.startsWith('data:image')) {
+        return url;
+    }
+
+    // абсолютные ссылки оставляем как есть
+    if (
+        typeof url === 'string' &&
+        (url.startsWith('http://') || url.startsWith('https://'))
+    ) {
+        return url;
+    }
+
+    // относительный путь backend-а
+    if (typeof url === 'string' && url.startsWith('/')) {
+        return `${API_BASE_URL}${url}`;
+    }
+
+    return `${API_BASE_URL}/${url}`;
+}
+
 export function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
+        const jsonPayload = decodeURIComponent(
+            atob(base64)
+                .split('')
+                .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+                .join('')
+        );
+
         return JSON.parse(jsonPayload);
-    } catch (error) {
-        console.error('Ошибка парсинга JWT:', error);
+    } catch {
         return null;
     }
 }
 
-// Универсальная функция API запросов
-async function apiRequest(endpoint, options = {}) {
-    const token = getToken();
-    
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-    };
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...defaultOptions,
-            ...options,
-            headers: {
-                ...defaultOptions.headers,
-                ...options.headers
-            }
-        });
-        
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.detail || `Ошибка ${response.status}`);
-        }
-        
-        return response.json();
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
+function saveUserToLocalStorage(userId, name, email, role, avatarUrl) {
+    if (userId !== null && userId !== undefined) {
+        localStorage.setItem(STORAGE_KEYS.USER_ID, String(userId));
+    }
+
+    if (name) {
+        localStorage.setItem(STORAGE_KEYS.USER_NAME, name);
+        localStorage.setItem(STORAGE_KEYS.USER_DISPLAY_NAME, name);
+    }
+
+    if (email) {
+        localStorage.setItem(STORAGE_KEYS.USER_EMAIL, email);
+    }
+
+    if (role) {
+        localStorage.setItem(STORAGE_KEYS.USER_ROLE, role);
+    }
+
+    if (avatarUrl) {
+        localStorage.setItem(STORAGE_KEYS.USER_AVATAR, getFullImageUrl(avatarUrl));
     }
 }
 
-// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ПРОФИЛЕМ ПОЛЬЗОВАТЕЛЯ ==========
+function clearUserFromLocalStorage() {
+    Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+}
 
-// Получение данных пользователя с бэка (без использования /users/me и без 403)
+function updateStoredUserObject(updates) {
+    const userStr = localStorage.getItem('user');
+
+    if (!userStr) return;
+
+    try {
+        const userObj = JSON.parse(userStr);
+
+        const normalizedUpdates = { ...updates };
+
+        if (normalizedUpdates.image_url) {
+            normalizedUpdates.image_url = getFullImageUrl(normalizedUpdates.image_url);
+        }
+
+        localStorage.setItem(
+            'user',
+            JSON.stringify({
+                ...userObj,
+                ...normalizedUpdates
+            })
+        );
+    } catch {
+        // некорректный JSON в localStorage — просто игнорируем
+    }
+}
+
+async function requestWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
+    try {
+        const response = await fetch(url, {
+            ...options,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        return response;
+    } catch (err) {
+        clearTimeout(timeoutId);
+        throw err;
+    }
+}
+
 export async function fetchUserProfile() {
     const token = getToken();
-    
+
     if (!token) {
         throw new Error('Не авторизован');
     }
-    
-    // Получаем данные из токена как основу
-    const tokenData = parseJwt(token);
-    
-    // Проверяем сохраненные данные в userStorage
-    let userId = tokenData?.sub || tokenData?.user_id || tokenData?.id;
-    let savedName = null;
-    
-    if (userId) {
-        savedName = userStorage.getUserName(userId);
-    }
-    
-    // Если нет userId из токена, берем из storage
-    if (!userId) {
-        userId = userStorage.getCurrentUserId();
-        if (userId) {
-            savedName = userStorage.getUserName(userId);
+
+    let storedUser = null;
+    const userStr = localStorage.getItem('user');
+
+    if (userStr) {
+        try {
+            storedUser = JSON.parse(userStr);
+        } catch {
+            storedUser = null;
         }
     }
-    
+
+    const tokenData = parseJwt(token);
+
+    if (!tokenData && !storedUser) {
+        throw new Error('Не удалось получить данные пользователя');
+    }
+
+    const userId =
+        storedUser?.id ||
+        storedUser?.user_id ||
+        tokenData?.id ||
+        tokenData?.user_id ||
+        tokenData?.sub ||
+        localStorage.getItem(STORAGE_KEYS.USER_ID);
+
+    const savedName = localStorage.getItem(STORAGE_KEYS.USER_NAME);
+
     let userName = null;
-    
-    // Если есть сохраненное имя и оно не "Пользователь" - используем его
+
     if (savedName && savedName !== 'Пользователь' && savedName !== 'undefined') {
         userName = savedName;
-        console.log('Имя из userStorage:', userName);
+    } else if (storedUser?.name && storedUser.name !== 'Пользователь') {
+        userName = storedUser.name;
+    } else if (storedUser?.display_name) {
+        userName = storedUser.display_name;
+    } else if (storedUser?.username) {
+        userName = storedUser.username;
+    } else if (storedUser?.email) {
+        userName = storedUser.email.split('@')[0];
+    } else if (tokenData?.name) {
+        userName = tokenData.name;
+    } else if (tokenData?.email) {
+        userName = tokenData.email.split('@')[0];
+    } else if (tokenData?.sub && String(tokenData.sub).includes('@')) {
+        userName = String(tokenData.sub).split('@')[0];
+    } else {
+        userName = tokenData?.role === 'supervisor' ? 'Супервайзер' : 'Пользователь';
     }
-    
-    // Если нет сохраненного имени, пробуем взять из токена
-    if (!userName) {
-        userName = tokenData?.name || tokenData?.username;
-        if (!userName && tokenData?.email) {
-            userName = tokenData.email.split('@')[0];
-        }
-        if (!userName) {
-            // Определяем роль из токена
-            const role = tokenData?.role || tokenData?.user_role;
-            userName = role === 'supervisor' ? 'Супервайзер' : 'Пользователь';
-        }
-        console.log('Имя из токена:', userName);
+
+    const userEmail =
+        storedUser?.email ||
+        tokenData?.email ||
+        (tokenData?.sub && String(tokenData.sub).includes('@') ? tokenData.sub : null) ||
+        localStorage.getItem(STORAGE_KEYS.USER_EMAIL);
+
+    const userRole =
+        storedUser?.role ||
+        tokenData?.role ||
+        localStorage.getItem(STORAGE_KEYS.USER_ROLE);
+
+    const rawAvatar =
+        storedUser?.image_url ||
+        storedUser?.avatar ||
+        storedUser?.url ||
+        localStorage.getItem(STORAGE_KEYS.USER_AVATAR) ||
+        null;
+
+    const userAvatar = getFullImageUrl(rawAvatar);
+
+    if (userId) {
+        saveUserToLocalStorage(userId, userName, userEmail, userRole, userAvatar);
+
+        updateStoredUserObject({
+            id: userId,
+            name: userName,
+            email: userEmail,
+            role: userRole,
+            image_url: userAvatar
+        });
     }
-    
-    // Сохраняем в userStorage для будущего использования
-    if (userId && userName) {
-        userStorage.setCurrentUserId(userId.toString());
-        userStorage.setUserName(userId.toString(), userName);
-        if (tokenData?.email) userStorage.setUserEmail(userId.toString(), tokenData.email);
-        if (tokenData?.role) userStorage.setUserRole(userId.toString(), tokenData.role);
-    }
-    
-    const userData = {
+
+    return {
         id: userId,
         name: userName,
-        email: tokenData?.email,
-        role: tokenData?.role || tokenData?.user_role,
-        display_name: userName
+        email: userEmail,
+        role: userRole,
+        image_url: userAvatar,
+        pvz: storedUser?.pvz || null
     };
-    
-    console.log('Финальные данные пользователя:', userData);
-    return userData;
 }
 
-// Быстрое получение текущего пользователя из токена (без запросов к бэку)
-export async function getCurrentUser() {
+export function getCurrentUserSync() {
     const token = getToken();
-    
+
     if (!token) {
-        throw new Error('Не авторизован');
+        return null;
     }
-    
-    // Получаем данные из токена
+
     const tokenData = parseJwt(token);
-    
-    if (tokenData) {
-        let userName = tokenData.name || tokenData.username;
-        if (!userName && tokenData.email) {
-            userName = tokenData.email.split('@')[0];
-        }
-        if (!userName) {
-            const role = tokenData.role || tokenData.user_role;
-            userName = role === 'supervisor' ? 'Супервайзер' : 'Пользователь';
-        }
-        
-        const userData = {
-            id: tokenData.sub || tokenData.user_id || tokenData.id,
-            email: tokenData.email,
-            role: tokenData.role || tokenData.user_role,
-            name: userName,
-            display_name: userName
-        };
-        
-        if (userData.id) {
-            userStorage.setCurrentUserId(userData.id.toString());
-            const savedData = userStorage.getUserData(userData.id.toString());
-            
-            userStorage.setUserData(userData.id.toString(), {
-                name: savedData?.name || userData.name,
-                email: savedData?.email || userData.email,
-                avatar: savedData?.avatar || null,
-                role: userData.role
-            });
-        }
-        
-        return userData;
+
+    if (!tokenData) {
+        return null;
     }
-    
-    const userId = userStorage.getCurrentUserId();
-    if (userId) {
-        const savedData = userStorage.getUserData(userId);
-        if (savedData && savedData.name) {
-            return {
-                id: parseInt(userId),
-                ...savedData
-            };
+
+    let storedUser = null;
+    const userStr = localStorage.getItem('user');
+
+    if (userStr) {
+        try {
+            storedUser = JSON.parse(userStr);
+        } catch {
+            storedUser = null;
         }
     }
-    
-    throw new Error('Не удалось получить данные пользователя');
+
+    const localName = localStorage.getItem(STORAGE_KEYS.USER_NAME);
+
+    let userName =
+        localName ||
+        storedUser?.name ||
+        tokenData.name;
+
+    if (!userName && storedUser?.email) {
+        userName = storedUser.email.split('@')[0];
+    }
+
+    if (!userName && tokenData.email) {
+        userName = tokenData.email.split('@')[0];
+    }
+
+    if (!userName && tokenData.sub && String(tokenData.sub).includes('@')) {
+        userName = String(tokenData.sub).split('@')[0];
+    }
+
+    if (!userName) {
+        userName = tokenData.role === 'supervisor' ? 'Супервайзер' : 'Пользователь';
+    }
+
+    const rawAvatar =
+        localStorage.getItem(STORAGE_KEYS.USER_AVATAR) ||
+        storedUser?.image_url ||
+        storedUser?.avatar ||
+        tokenData.image_url ||
+        null;
+
+    return {
+        id: storedUser?.id || tokenData.id || tokenData.sub,
+        email:
+            storedUser?.email ||
+            tokenData.email ||
+            (tokenData.sub && String(tokenData.sub).includes('@') ? tokenData.sub : null),
+        role: storedUser?.role || tokenData.role,
+        name: userName,
+        image_url: getFullImageUrl(rawAvatar),
+        pvz: storedUser?.pvz || null
+    };
 }
 
-// Обновление имени пользователя
 export async function updateUserName(newName) {
     if (!newName || newName.length < 3) {
-        throw new Error('Имя должно содержать минимум 3 символа');
+        throw new Error('Имя должно быть от 3 до 50 символов');
     }
-    
+
     if (newName.length > 50) {
-        throw new Error('Имя не должно превышать 50 символов');
+        throw new Error('Имя должно быть от 3 до 50 символов');
     }
-    
+
     const token = getToken();
+
     if (!token) {
         throw new Error('Не авторизован');
     }
-    
-    // Пробуем существующие эндпоинты с бэка
-    const endpoints = [
-        `/users/update_name?new_name=${encodeURIComponent(newName)}`,
-        `/supervisor/update_name?new_name=${encodeURIComponent(newName)}`,
-        `/operator/update_name?new_name=${encodeURIComponent(newName)}`
-    ];
-    
-    let lastError = null;
-    let successResponse = null;
-    
-    for (const endpoint of endpoints) {
-        try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                successResponse = await response.json();
-                break;
-            }
-            
-            if (response.status !== 404 && response.status !== 403) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.detail || `Ошибка ${response.status}`);
-            }
-        } catch (err) {
-            lastError = err;
-            continue;
-        }
-    }
-    
-    // Сохраняем имя в userStorage в любом случае
-    const userId = userStorage.getCurrentUserId();
+
+    const url = `${API_BASE_URL}/users/update_name?new_name=${encodeURIComponent(newName)}`;
+    const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+
+    // Оптимистичное локальное обновление
     if (userId) {
-        userStorage.setUserName(userId, newName);
-        localStorage.setItem('userName', newName);
-        localStorage.setItem('userDisplayName', newName);
-    }
-    
-    // Отправляем событие обновления
-    window.dispatchEvent(new CustomEvent('userDataUpdate', { 
-        detail: { userId: userId, name: newName }
-    }));
-    
-    if (successResponse) {
-        return successResponse;
-    }
-    
-    console.warn('Серверный эндпоинт для обновления имени не найден, но имя сохранено локально');
-    return { name: newName, id: userId ? parseInt(userId) : null, message: 'Имя сохранено локально' };
-}
+        localStorage.setItem(STORAGE_KEYS.USER_NAME, newName);
+        localStorage.setItem(STORAGE_KEYS.USER_DISPLAY_NAME, newName);
+        updateStoredUserObject({ name: newName });
 
-// Обновление email пользователя
-export async function updateUserEmail(newEmail) {
-    if (!newEmail || !newEmail.includes('@')) {
-        throw new Error('Введите корректный email');
+        window.dispatchEvent(
+            new CustomEvent('userDataUpdate', {
+                detail: {
+                    userId,
+                    name: newName
+                }
+            })
+        );
     }
-    
-    return apiRequest(`/users/update_email?new_email=${encodeURIComponent(newEmail)}`, {
-        method: 'PATCH'
-    });
-}
 
-// Обновление аватара пользователя
-export async function updateUserAvatar(file) {
-    const token = getToken();
-    if (!token) {
-        throw new Error('Не авторизован');
-    }
-    
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
     try {
-        const response = await fetch(`${API_BASE_URL}/users/update_avatar`, {
+        const response = await requestWithTimeout(url, {
             method: 'PATCH',
             headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
-        
+
         if (!response.ok) {
-            throw new Error('Ошибка при загрузке аватара');
+            throw new Error(`HTTP ${response.status}`);
         }
-        
-        const result = await response.json();
-        
-        // Сохраняем аватар в userStorage
-        const userId = userStorage.getCurrentUserId();
-        if (userId && result.avatar) {
-            userStorage.setUserAvatar(userId, result.avatar);
-            localStorage.setItem('userAvatar', result.avatar);
+
+        const userSchema = await response.json();
+
+        if (userSchema.name) {
+            localStorage.setItem(STORAGE_KEYS.USER_NAME, userSchema.name);
+            localStorage.setItem(STORAGE_KEYS.USER_DISPLAY_NAME, userSchema.name);
+
+            updateStoredUserObject({
+                name: userSchema.name
+            });
+
+            window.dispatchEvent(
+                new CustomEvent('userDataUpdate', {
+                    detail: {
+                        userId,
+                        name: userSchema.name
+                    }
+                })
+            );
         }
-        
-        return result;
-    } catch (error) {
-        console.error('Avatar upload error:', error);
-        throw new Error('Не удалось загрузить аватар');
+
+        if (userSchema.image_url) {
+            const normalizedAvatar = getFullImageUrl(userSchema.image_url);
+            userSchema.image_url = normalizedAvatar;
+
+            localStorage.setItem(STORAGE_KEYS.USER_AVATAR, normalizedAvatar);
+
+            updateStoredUserObject({
+                image_url: normalizedAvatar
+            });
+        }
+
+        return userSchema;
+    } catch {
+        return {
+            id: userId ? Number(userId) : null,
+            name: newName,
+            message: 'Имя сохранено локально'
+        };
     }
 }
 
-// Проверка соединения с сервером
+export async function updateUserAvatar(file) {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    if (!file) {
+        throw new Error('Файл не выбран');
+    }
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const url = `${API_BASE_URL}/users/update_image`;
+
+    const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    const rawImageUrl = result.image_url || result.avatar || result.url;
+    const imageUrl = getFullImageUrl(rawImageUrl);
+
+    if (!imageUrl) {
+        throw new Error('Сервер не вернул URL аватара');
+    }
+
+    const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+
+    if (userId) {
+        localStorage.setItem(STORAGE_KEYS.USER_AVATAR, imageUrl);
+
+        updateStoredUserObject({
+            image_url: imageUrl
+        });
+
+        window.dispatchEvent(
+            new CustomEvent('userAvatarUpdate', {
+                detail: {
+                    userId,
+                    image_url: imageUrl
+                }
+            })
+        );
+
+        window.dispatchEvent(
+            new CustomEvent('userDataUpdate', {
+                detail: {
+                    userId,
+                    avatar: imageUrl,
+                    image_url: imageUrl
+                }
+            })
+        );
+    }
+
+    return {
+        ...result,
+        image_url: imageUrl
+    };
+}
+
+export async function deleteUserAvatar() {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    const defaultAvatar = getFullImageUrl('/media/default_avatar.webp');
+    const userId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+
+    // Оптимистично сбрасываем локально
+    if (userId) {
+        localStorage.setItem(STORAGE_KEYS.USER_AVATAR, defaultAvatar);
+
+        updateStoredUserObject({
+            image_url: defaultAvatar
+        });
+
+        window.dispatchEvent(
+            new CustomEvent('userAvatarUpdate', {
+                detail: {
+                    userId,
+                    image_url: defaultAvatar
+                }
+            })
+        );
+
+        window.dispatchEvent(
+            new CustomEvent('userDataUpdate', {
+                detail: {
+                    userId,
+                    avatar: defaultAvatar,
+                    image_url: defaultAvatar
+                }
+            })
+        );
+    }
+
+    const url = `${API_BASE_URL}/users/delete_image`;
+
+    try {
+        const response = await requestWithTimeout(url, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        const newUrl = getFullImageUrl(result.image_url || result.avatar || defaultAvatar);
+
+        if (userId && newUrl) {
+            localStorage.setItem(STORAGE_KEYS.USER_AVATAR, newUrl);
+
+            updateStoredUserObject({
+                image_url: newUrl
+            });
+
+            window.dispatchEvent(
+                new CustomEvent('userAvatarUpdate', {
+                    detail: {
+                        userId,
+                        image_url: newUrl
+                    }
+                })
+            );
+
+            window.dispatchEvent(
+                new CustomEvent('userDataUpdate', {
+                    detail: {
+                        userId,
+                        avatar: newUrl,
+                        image_url: newUrl
+                    }
+                })
+            );
+        }
+
+        return {
+            ...result,
+            image_url: newUrl
+        };
+    } catch {
+        return {
+            message: 'Аватар сброшен локально',
+            image_url: defaultAvatar
+        };
+    }
+}
+
+export function clearAllUserData() {
+    clearUserFromLocalStorage();
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+}
+
+export async function updateUserEmail() {
+    throw new Error('Эндпоинт update_email не реализован');
+}
+
 export async function checkServerConnection() {
     try {
-        const response = await fetch(`${API_BASE_URL}/health`, {
-            method: 'GET',
-            signal: AbortSignal.timeout(5000)
+        const token = getToken();
+
+        const response = await fetch(`${API_BASE_URL}/users/update_name?new_name=test`, {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         });
-        return response.ok;
-    } catch (error) {
-        console.error('Server connection failed:', error);
+
+        return response.status !== 404;
+    } catch {
         return false;
     }
 }
 
-// Очистка всех данных пользователя
-export function clearAllUserData() {
-    const userId = userStorage.getCurrentUserId();
-    if (userId) {
-        userStorage.clearUserData(userId);
+export async function getCurrentUser() {
+    const user = getCurrentUserSync();
+
+    if (!user) {
+        throw new Error('Не удалось получить данные пользователя');
     }
-    userStorage.setCurrentUserId(null);
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userDisplayName');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userAvatar');
-    localStorage.removeItem('userRole');
+
+    return user;
 }

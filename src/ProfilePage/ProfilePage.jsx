@@ -1,8 +1,14 @@
 import './ProfilePage.css'
 import { defaultData } from '../data.js'
 import { useState, useRef, useEffect } from 'react'
-import { updateUserName, updateUserAvatar, fetchUserProfile, parseJwt } from '../Api/userService.js'
-import { userStorage } from '../Api/userStorageService.js'
+import {
+    updateUserName,
+    updateUserAvatar,
+    fetchUserProfile,
+    parseJwt,
+    deleteUserAvatar,
+    getFullImageUrl
+} from '../Api/userService.js'
 
 import cameraIcon from '/assets/camera_icon.svg'
 import penIcon from '/assets/pen_icon.svg'
@@ -12,10 +18,22 @@ import moonIcon from '/assets/camera_icon.svg'
 import Button from '../Button/Button.jsx'
 import Calendar from '../Calendar/Calendar.jsx'
 
+const STORAGE_KEYS = {
+    USER_ID: 'app_user_id',
+    USER_NAME: 'app_user_name',
+    USER_EMAIL: 'app_user_email',
+    USER_ROLE: 'app_user_role',
+    USER_AVATAR: 'app_user_avatar'
+}
+
 export default function ProfilePage({ onBack, onRegister, userData, onLogout, onUserUpdate }) {
     const [isEditing, setIsEditing] = useState(false)
     const [editedName, setEditedName] = useState('')
-    const [avatar, setAvatar] = useState('')
+
+    const [avatar, setAvatar] = useState(() => {
+        return getFullImageUrl(localStorage.getItem(STORAGE_KEYS.USER_AVATAR)) || ''
+    })
+
     const [selectedDate, setSelectedDate] = useState(null)
     const [showNotification, setShowNotification] = useState(false)
     const [notificationMessage, setNotificationMessage] = useState('')
@@ -25,68 +43,133 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
     const [userNameState, setUserNameState] = useState('')
     const [userEmailState, setUserEmailState] = useState('')
     const [userId, setUserId] = useState(null)
+    const [userRole, setUserRole] = useState('operator')
     const fileInputRef = useRef(null)
-    
-    // Загрузка данных пользователя с бэка
+
     useEffect(() => {
         const loadUserData = async () => {
             try {
                 const profile = await fetchUserProfile();
-                console.log('ProfilePage - профиль с бэка:', profile);
-                
+                console.log('ProfilePage - профиль:', profile);
+
                 let userName = profile.name || profile.display_name || profile.username;
                 let userEmail = profile.email;
-                let userAvatarUrl = profile.avatar;
-                let userRole = profile.role;
+                let userAvatarUrl = profile.image_url;
+                let userRoleFromProfile = profile.role;
                 let userIdFromBack = profile.id || profile.user_id;
-                
+
                 if (userName && userName !== 'Пользователь') {
                     setUserNameState(userName);
                     setUserEmailState(userEmail || '');
-                    setAvatar(userAvatarUrl || '');
-                    
+                    setUserRole(userRoleFromProfile || 'operator');
+
                     if (userIdFromBack) {
                         setUserId(userIdFromBack);
-                        userStorage.setCurrentUserId(userIdFromBack.toString());
-                        userStorage.setUserName(userIdFromBack.toString(), userName);
-                        if (userEmail) userStorage.setUserEmail(userIdFromBack.toString(), userEmail);
-                        if (userRole) userStorage.setUserRole(userIdFromBack.toString(), userRole);
-                        if (userAvatarUrl) userStorage.setUserAvatar(userIdFromBack.toString(), userAvatarUrl);
+                        localStorage.setItem(STORAGE_KEYS.USER_ID, userIdFromBack.toString());
+                        localStorage.setItem(STORAGE_KEYS.USER_NAME, userName);
+                        localStorage.setItem(STORAGE_KEYS.USER_EMAIL, userEmail || '');
+                        localStorage.setItem(STORAGE_KEYS.USER_ROLE, userRoleFromProfile || 'operator');
                     }
+
+                    // Аватар: сначала из профиля, потом из localStorage, потом дефолт
+                    const finalAvatar = getFullImageUrl(
+                        userAvatarUrl || localStorage.getItem(STORAGE_KEYS.USER_AVATAR)
+                    ) || defaultData.image;
+
+                    setAvatar(finalAvatar);
+                    localStorage.setItem(STORAGE_KEYS.USER_AVATAR, finalAvatar);
                 } else {
-                    // Fallback на токен
                     const token = localStorage.getItem('access_token');
+
                     if (token) {
                         const tokenData = parseJwt(token);
+
                         if (tokenData) {
-                            let fallbackName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                            let fallbackName =
+                                tokenData.name ||
+                                tokenData.email?.split('@')[0] ||
+                                tokenData.sub?.split('@')[0] ||
+                                'Пользователь';
+
                             setUserNameState(fallbackName);
-                            setUserEmailState(tokenData.email || '');
+                            setUserEmailState(tokenData.email || tokenData.sub || '');
+                            setUserRole(tokenData.role || 'operator');
+
+                            const savedAvatar = getFullImageUrl(
+                                localStorage.getItem(STORAGE_KEYS.USER_AVATAR) || tokenData.image_url
+                            );
+
+                            if (savedAvatar) {
+                                setAvatar(savedAvatar);
+                                localStorage.setItem(STORAGE_KEYS.USER_AVATAR, savedAvatar);
+                            }
                         }
                     }
                 }
             } catch (error) {
-                console.error('ProfilePage - ошибка загрузки:', error);
-                // Fallback на localStorage
+                console.error('ProfilePage - ошибка:', error);
+
                 const token = localStorage.getItem('access_token');
+
                 if (token) {
                     const tokenData = parseJwt(token);
+
                     if (tokenData) {
-                        let fallbackName = tokenData.name || tokenData.username || tokenData.email?.split('@')[0] || 'Пользователь';
+                        let fallbackName =
+                            tokenData.name ||
+                            tokenData.email?.split('@')[0] ||
+                            tokenData.sub?.split('@')[0] ||
+                            'Пользователь';
+
                         setUserNameState(fallbackName);
-                        setUserEmailState(tokenData.email || '');
+                        setUserEmailState(tokenData.email || tokenData.sub || '');
+                        setUserRole(tokenData.role || 'operator');
+
+                        const savedAvatar = getFullImageUrl(
+                            localStorage.getItem(STORAGE_KEYS.USER_AVATAR) || tokenData.image_url
+                        );
+
+                        if (savedAvatar) {
+                            setAvatar(savedAvatar);
+                            localStorage.setItem(STORAGE_KEYS.USER_AVATAR, savedAvatar);
+                        }
                     }
                 }
             }
         };
-        
+
         loadUserData();
+    }, []);
+
+    useEffect(() => {
+        const storedRole = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
+        if (storedRole && !userRole) setUserRole(storedRole);
+    }, [userRole]);
+
+    // Слушаем внешние обновления аватара (например, из Header)
+    useEffect(() => {
+        const handleAvatarUpdate = (event) => {
+            const { userId: eventUserId, image_url } = event.detail || {};
+            const currentUserId = localStorage.getItem(STORAGE_KEYS.USER_ID);
+
+            if ((eventUserId && String(eventUserId) === String(currentUserId)) && image_url) {
+                const normalizedAvatar = getFullImageUrl(image_url);
+
+                if (normalizedAvatar) {
+                    setAvatar(normalizedAvatar);
+                    localStorage.setItem(STORAGE_KEYS.USER_AVATAR, normalizedAvatar);
+                }
+            }
+        };
+
+        window.addEventListener('userAvatarUpdate', handleAvatarUpdate);
+        return () => window.removeEventListener('userAvatarUpdate', handleAvatarUpdate);
     }, []);
 
     const displayName = userNameState || 'Пользователь'
     const userEmail = userEmailState || 'user@example.com'
-    const userAvatar = avatar || defaultData.image
-    const userRole = userStorage.getUserRole(userId) || localStorage.getItem('userRole') || userData?.role || 'operator'
+    const userAvatar = getFullImageUrl(avatar) || defaultData.image
+    const finalUserRole = userRole || userData?.role || 'operator'
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme)
@@ -95,9 +178,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
 
     useEffect(() => {
         if (showNotification) {
-            const timer = setTimeout(() => {
-                setShowNotification(false)
-            }, 3000)
+            const timer = setTimeout(() => setShowNotification(false), 3000)
             return () => clearTimeout(timer)
         }
     }, [showNotification])
@@ -108,13 +189,8 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
         setShowNotification(true)
     }
 
-    const handleBack = () => {
-        if (onBack) onBack()
-    }
-
-    const handleLogout = () => {
-        if (onLogout) onLogout()
-    }
+    const handleBack = () => onBack?.()
+    const handleLogout = () => onLogout?.()
 
     const handleEditProfile = () => {
         setEditedName(displayName)
@@ -124,125 +200,153 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
     const handleSaveChanges = async () => {
         let hasChanges = false
         let updatedName = null
-        
         setIsLoading(true)
 
         try {
             if (editedName && editedName !== displayName) {
-                if (editedName.length < 3) {
-                    showMessage('Имя должно содержать минимум 3 символа', 'error')
+                if (editedName.length < 3 || editedName.length > 50) {
+                    showMessage('Имя должно быть от 3 до 50 символов', 'error')
                     setIsLoading(false)
                     return
                 }
-                
-                if (editedName.length > 50) {
-                    showMessage('Имя не должно превышать 50 символов', 'error')
-                    setIsLoading(false)
-                    return
-                }
-                
+
                 try {
-                    await updateUserName(editedName)
-                    showMessage(`Имя успешно изменено на "${editedName}"`)
+                    const result = await updateUserName(editedName)
+                    showMessage(`Имя изменено на "${editedName}"`)
+
+                    const newName = result?.name || editedName
+                    setUserNameState(newName)
+                    updatedName = newName
                 } catch (apiError) {
-                    console.warn('API ошибка, сохраняем локально:', apiError.message);
+                    console.warn('API ошибка, сохранено локально:', apiError)
                     showMessage(`Имя "${editedName}" сохранено локально`, 'warning')
+
+                    localStorage.setItem(STORAGE_KEYS.USER_NAME, editedName)
+                    setUserNameState(editedName)
+                    updatedName = editedName
                 }
-                
-                const currentUserId = userStorage.getCurrentUserId() || userId;
-                if (currentUserId) {
-                    userStorage.setUserName(currentUserId, editedName);
-                }
-                
-                setUserNameState(editedName);
-                updatedName = editedName;
-                hasChanges = true;
+
+                hasChanges = true
             }
-            
+
             if (!hasChanges) {
-                showMessage('Нет изменений для сохранения', 'warning');
+                showMessage('Нет изменений', 'warning')
+            } else if (onUserUpdate) {
+                onUserUpdate({ name: updatedName, displayName: updatedName })
             }
-            
-            if (hasChanges && onUserUpdate) {
-                onUserUpdate({ 
-                    name: updatedName,
-                    displayName: updatedName
-                });
-            }
-            
         } catch (error) {
-            console.error('Ошибка при сохранении:', error);
-            showMessage(error.message || 'Произошла ошибка при сохранении', 'error');
+            showMessage(error.message || 'Ошибка сохранения', 'error')
         } finally {
-            setIsLoading(false);
-            setIsEditing(false);
-            const currentUserId = userStorage.getCurrentUserId() || userId;
-            window.dispatchEvent(new CustomEvent('userDataUpdate', { 
-                detail: { userId: currentUserId, name: updatedName }
-            }));
+            setIsLoading(false)
+            setIsEditing(false)
+
+            const currentUserId = localStorage.getItem(STORAGE_KEYS.USER_ID)
+
+            window.dispatchEvent(new CustomEvent('userDataUpdate', {
+                detail: {
+                    userId: currentUserId,
+                    name: updatedName
+                }
+            }))
         }
     }
 
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-    }
-
-    const handleAvatarClick = () => {
-        fileInputRef.current.click()
-    }
+    const handleCancelEdit = () => setIsEditing(false)
+    const handleAvatarClick = () => fileInputRef.current.click()
 
     const handleAvatarChange = async (e) => {
         const file = e.target.files[0]
         if (!file) return
-        
+
+        // Валидация
         if (file.size > 5 * 1024 * 1024) {
-            showMessage('Файл слишком большой. Максимальный размер 5MB', 'error')
+            showMessage('Файл не более 5MB', 'error')
             return
         }
-        
+
         if (!file.type.startsWith('image/')) {
-            showMessage('Пожалуйста, выберите изображение', 'error')
+            showMessage('Выберите изображение', 'error')
             return
         }
-        
+
+        // Локальное превью (оптимистичное обновление)
         const reader = new FileReader()
+
         reader.onloadend = () => {
-            setAvatar(reader.result)
-            
-            const currentUserId = userStorage.getCurrentUserId() || userId
-            if (currentUserId) {
-                userStorage.setUserAvatar(currentUserId, reader.result)
+            const base64 = reader.result
+            setAvatar(base64)
+
+            const userId = localStorage.getItem(STORAGE_KEYS.USER_ID)
+
+            if (userId) {
+                localStorage.setItem(STORAGE_KEYS.USER_AVATAR, base64)
+
+                if (onUserUpdate) {
+                    onUserUpdate({
+                        avatar: base64,
+                        image_url: base64
+                    })
+                }
+
+                window.dispatchEvent(new CustomEvent('userAvatarUpdate', {
+                    detail: {
+                        userId,
+                        image_url: base64
+                    }
+                }))
             }
-            
-            if (onUserUpdate) onUserUpdate({ avatar: reader.result })
-            
-            window.dispatchEvent(new CustomEvent('userDataUpdate', { 
-                detail: { userId: currentUserId, avatar: reader.result }
-            }))
         }
+
         reader.readAsDataURL(file)
-        
+
+        // Отправка на сервер
         try {
-            await updateUserAvatar(file)
-            showMessage('Аватар успешно обновлен')
+            const result = await updateUserAvatar(file)
+            const permanentUrl = getFullImageUrl(result?.image_url || result?.avatar)
+
+            if (permanentUrl && permanentUrl !== avatar) {
+                setAvatar(permanentUrl)
+
+                const userId = localStorage.getItem(STORAGE_KEYS.USER_ID)
+
+                if (userId) {
+                    localStorage.setItem(STORAGE_KEYS.USER_AVATAR, permanentUrl)
+
+                    if (onUserUpdate) {
+                        onUserUpdate({
+                            avatar: permanentUrl,
+                            image_url: permanentUrl
+                        })
+                    }
+
+                    window.dispatchEvent(new CustomEvent('userAvatarUpdate', {
+                        detail: {
+                            userId,
+                            image_url: permanentUrl
+                        }
+                    }))
+                }
+            }
+
+            showMessage('Аватар обновлён')
         } catch (error) {
-            console.error('Ошибка при загрузке аватара:', error)
-            showMessage('Аватар сохранен локально', 'warning')
+            console.error('Ошибка загрузки аватара:', error)
+            showMessage('Аватар сохранён локально (сервер недоступен)', 'warning')
+        } finally {
+            e.target.value = ''
         }
     }
 
-    const handleDateSelect = (date) => {
-        setSelectedDate(date)
-    }
+    const handleDateSelect = (date) => setSelectedDate(date)
 
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light'
         setTheme(newTheme)
-        showMessage(`Тема изменена на ${newTheme === 'light' ? 'светлую' : 'темную'}`)
+        showMessage(`Тема: ${newTheme === 'light' ? 'светлая' : 'тёмная'}`)
     }
 
     const getRoleDisplay = () => {
-        switch(userRole) {
+        switch(finalUserRole) {
             case 'supervisor': return 'Супервайзер'
             case 'analyst': return 'Аналитик'
             case 'operator': return 'Оператор'
@@ -285,7 +389,7 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                                             onChange={(e) => setEditedName(e.target.value)}
                                             className='edit-input'
                                             disabled={isLoading}
-                                            placeholder="Введите имя (мин. 3 символа)"
+                                            placeholder="3-50 символов"
                                         />
                                     </div>
                                     <div className='edit-field'>
@@ -302,18 +406,10 @@ export default function ProfilePage({ onBack, onRegister, userData, onLogout, on
                                         </div>
                                     </div>
                                     <div className='edit-actions'>
-                                        <button 
-                                            onClick={handleSaveChanges} 
-                                            className='save-btn'
-                                            disabled={isLoading}
-                                        >
+                                        <button onClick={handleSaveChanges} className='save-btn' disabled={isLoading}>
                                             {isLoading ? 'Сохранение...' : 'Сохранить'}
                                         </button>
-                                        <button 
-                                            onClick={handleCancelEdit} 
-                                            className='cancel-btn'
-                                            disabled={isLoading}
-                                        >
+                                        <button onClick={handleCancelEdit} className='cancel-btn' disabled={isLoading}>
                                             Отмена
                                         </button>
                                     </div>
