@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import './SupportTicket.css';
 import Button from './Button/Button';
+import { createOperatorNotification } from './Api/notificationService';
 
 export default function SupportTicket({ userData, onSubmit }) {
     const [problemType, setProblemType] = useState('');
@@ -32,46 +33,40 @@ export default function SupportTicket({ userData, onSubmit }) {
             return;
         }
 
-        setIsSubmitting(true);
-
-        const ticketData = {
-            id: Date.now(),
-            problemType,
-            description,
-            priority,
-            status: 'new',
-            createdAt: new Date().toISOString(),
-            user: {
-                name: userData?.displayName || localStorage.getItem('userDisplayName') || 'Оператор',
-                login: userData?.login || localStorage.getItem('userLogin') || 'operator',
-                pvz: userData?.pvz || 'ПВЗ №1'
-            }
-        };
-
-        // Сохраняем в localStorage для демонстрации
-        const existingTickets = JSON.parse(localStorage.getItem('supportTickets') || '[]');
-        existingTickets.push(ticketData);
-        localStorage.setItem('supportTickets', JSON.stringify(existingTickets));
-
-        // Вызываем callback если передан
-        if (onSubmit) {
-            onSubmit(ticketData);
+        if (description.trim().length < 3) {
+            alert('Описание должно быть минимум 3 символа');
+            return;
         }
 
-        // Показываем успех
-        setShowSuccess(true);
-        
-        // Очищаем форму
-        setTimeout(() => {
+        setIsSubmitting(true);
+        setShowSuccess(false);
+
+        try {
+            const createdNotification = await createOperatorNotification({
+                problemType,
+                priority,
+                description
+            });
+
+            if (onSubmit) {
+                onSubmit(createdNotification);
+            }
+
+            setShowSuccess(true);
+
             setProblemType('');
             setDescription('');
             setPriority('medium');
-            setIsSubmitting(false);
-            
+
             setTimeout(() => {
                 setShowSuccess(false);
             }, 3000);
-        }, 1000);
+        } catch (error) {
+            console.error('Ошибка отправки заявки:', error);
+            alert(error.message || 'Не удалось отправить заявку');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
