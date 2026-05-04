@@ -15,9 +15,11 @@
     margin-right: 30px;
 }
 
-.bell-image {
-    width: 24px;
-    height: 24px;
+.bellImage {
+    width: 21px;
+    height: 21px;
+    opacity: 0.7;
+    margin-right: 15px;
     object-fit: contain;
     transition: transform 0.2s ease;
 }
@@ -36,7 +38,7 @@
     font-weight: bold;
     min-width: 18px;
     height: 18px;
-    border-radius: 50%;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;

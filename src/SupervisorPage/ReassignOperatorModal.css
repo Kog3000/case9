@@ -165,7 +165,7 @@
 
 .operator-name {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     color: #1a1f36;
     margin-bottom: 2px;
@@ -173,7 +173,7 @@
 
 .operator-email {
     display: block;
-    font-size: 11px;
+    font-size: 13px;
     color: #8b8f9e;
 }
 
@@ -185,7 +185,7 @@
 
 .operator-id,
 .operator-role {
-    font-size: 10px;
+    font-size: 12px;
     color: #a0a0b0;
 }
 
@@ -193,7 +193,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    font-size: 11px;
+    font-size: 13px;
     min-width: 120px;
 }
 
@@ -212,21 +212,21 @@
 
 .pvz-address {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     color: #1a1f36;
 }
 
 .pvz-id {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     color: #8b8f9e;
     margin-top: 2px;
 }
 
 .pvz-work-time {
     display: block;
-    font-size: 10px;
+    font-size: 12px;
     color: #8b8f9e;
     margin-top: 2px;
 }
@@ -240,7 +240,7 @@
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 14px;
+    font-size: 16px;
     flex-shrink: 0;
 }
 
@@ -249,7 +249,7 @@
     color: #8b8f9e;
     padding: 2px 8px;
     border-radius: 12px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
 }
 

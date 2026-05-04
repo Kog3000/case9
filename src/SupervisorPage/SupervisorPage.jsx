@@ -11,6 +11,13 @@ import CustomBarChart from './CustomBar/CustomBarChart'
 import Button from '../Button/Button'
 import ProfilePage from '../ProfilePage/ProfilePage';
 
+// Helper function to prevent negative numbers
+const handleNonNegativeInput = (value) => {
+  if (value === '') return '';
+  const num = Number(value);
+  if (isNaN(num)) return '';
+  return num < 0 ? '' : value;
+};
 
 export default function SupervisorPage({ userData, onLogout, onUserUpdate }) {
   const [pvzId, setPvzId] = useState('');
@@ -206,6 +213,14 @@ const loadUserProfile = async () => {
       setError('Заполните ID ПВЗ и дату');
       return;
     }
+    
+    // Validate non-negative Pvz ID
+    const pvzIdNumber = Number(pvzId);
+    if (pvzIdNumber < 0) {
+      setError('ID ПВЗ не может быть отрицательным');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     setSuccess('');
@@ -230,6 +245,14 @@ const loadUserProfile = async () => {
   const handleChartSearch = () => {
     if (!chartPvzId || !chartDate) {
       setChartError('Заполните ID ПВЗ и дату для диаграммы');
+      setShouldLoadChart(false);
+      return;
+    }
+    
+    // Validate non-negative Pvz ID for chart
+    const chartPvzIdNumber = Number(chartPvzId);
+    if (chartPvzIdNumber < 0) {
+      setChartError('ID ПВЗ не может быть отрицательным');
       setShouldLoadChart(false);
       return;
     }
@@ -303,8 +326,14 @@ const loadUserProfile = async () => {
     }
   };
 
+  const handlePvzIdChange = (e) => {
+    const value = e.target.value;
+    setPvzId(handleNonNegativeInput(value));
+  };
+
   const handleChartPvzIdChange = (e) => {
-    setChartPvzId(e.target.value);
+    const value = e.target.value;
+    setChartPvzId(handleNonNegativeInput(value));
     setShouldLoadChart(false);
     setChartError('');
   };
@@ -324,8 +353,10 @@ const loadUserProfile = async () => {
           type="number"
           placeholder="ID ПВЗ"
           value={pvzId}
-          onChange={(e) => setPvzId(e.target.value)}
+          onChange={handlePvzIdChange}
           className="filter-input"
+          min="1"
+          step="1"
         />
         <input
           type="date"
@@ -334,7 +365,7 @@ const loadUserProfile = async () => {
           className="filter-input"
         />
         <Button onClick={handleSearch} className="search-btn" content='Показать заказы'></Button>
-        <Button content='Отчёт в CSV'></Button>
+        {/* <Button content='Отчёт в CSV'></Button> */}
         
         <Button 
           onClick={handleOpenReassignModal} 
@@ -376,6 +407,8 @@ const loadUserProfile = async () => {
                   value={chartPvzId}
                   onChange={handleChartPvzIdChange}
                   className="filter-input first"
+                  min="0"
+                  step="1"
                 />
                 <input
                   type="date"

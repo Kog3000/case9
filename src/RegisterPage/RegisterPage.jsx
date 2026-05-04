@@ -100,7 +100,7 @@ export default function RegisterPage({ onRegister, onLoginSuccess }) {
                         placeholder="········"
                         disabled={isLoading}
                     />
-                    <a href="#" className="forgot-link">Забыли пароль?</a>
+                    {/* <a href="#" className="forgot-link">Забыли пароль?</a> */}
                 </div>
                 
                 <button 

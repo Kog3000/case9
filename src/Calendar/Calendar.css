@@ -37,7 +37,7 @@
 
 .calendar-nav:hover {
     background: #f0f0f0;
-    color: #342BE2;
+    color: #2163F6;
 }
 
 .calendar-weekdays {
@@ -85,9 +85,9 @@
 }
 
 .calendar-day.today {
-    background: #e8e7f0;
+    background: #fff;
     font-weight: 700;
-    color: #342BE2;
+    color: #2163F6;
     position: relative;
 }
 
@@ -99,12 +99,12 @@
     transform: translateX(-50%);
     width: 4px;
     height: 4px;
-    background: #342BE2;
+    background: #2163F6;
     border-radius: 50%;
 }
 
 .calendar-day.selected {
-    background: #342BE2;
+    background: #2163F6;
     color: white;
     font-weight: 600;
     transform: scale(1);
@@ -131,19 +131,20 @@
 }
 
 .today-btn {
-    background: #f0f1ff;
-    color: #342BE2;
+    background: transparent;
+    border: 1px solid #2163F6 !important;
+    color: #2163F6;
     border: none;
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .today-btn:hover {
-    background: #342BE2;
+    background: #2163F6;
     color: white;
     transform: translateY(-2px);
 }

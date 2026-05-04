@@ -86,7 +86,7 @@
 
 .form-label {
   display: block;
-  font-size: 13px !important; /* Уменьшено с 14px до 13px */
+  font-size: 14px !important; /* Уменьшено с 14px до 13px */
   font-weight: 450 !important;
   color: #424242 !important; /* Менее яркий цвет (было #424242) */
   margin-bottom: 6px !important;
@@ -99,7 +99,7 @@
   background: #F8F9FF;
   border: 1px solid #eef0f5;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: #1a1f36;
   transition: all 0.3s ease;
   box-sizing: border-box;
@@ -148,6 +148,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 24px;
+  margin-top: 24px;
 }
 
 .login-button:hover:not(:disabled) {
