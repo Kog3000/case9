@@ -1,0 +1,342 @@
+/* src/Header/NotificationModal.css */
+
+.notification-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.notification-modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+/* Скрываем скроллбар */
+.notification-modal-content::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}
+
+.notification-modal-content {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.notification-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eef0f5;
+    background: #f8f9ff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-radius: 20px 20px 0 0;
+}
+
+.notification-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1f36;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #8b8f9e;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: #eef0f5;
+    color: #1a1f36;
+}
+
+.notification-modal-body {
+    padding: 24px;
+}
+
+/* Информация о проблеме */
+.problem-info {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid #eef0f5;
+}
+
+.problem-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.problem-icon {
+    font-size: 20px;
+}
+
+/* Детали проблемы */
+.problem-details {
+    margin: 16px 0;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #eef0f5;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eef0f5;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.detail-item:first-child {
+    padding-top: 0;
+}
+
+.detail-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8b8f9e;
+    letter-spacing: 0.3px;
+}
+
+.detail-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1a1f36;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
+}
+
+/* Стили для приоритета */
+.priority-value {
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.priority-value.priority-high {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.priority-value.priority-medium {
+    color: #f39c12;
+    background-color: rgba(243, 156, 18, 0.1);
+}
+
+.priority-value.priority-low {
+    color: #2ecc71;
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+/* Описание проблемы */
+.problem-description {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eef0f5;
+}
+
+.description-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1f36;
+    margin-bottom: 8px;
+}
+
+.description-text {
+    font-size: 14px;
+    color: #4a4f6e;
+    line-height: 1.5;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #eef0f5;
+}
+
+/* Форма */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1f36;
+    margin-bottom: 12px;
+}
+
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #eef0f5;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s;
+    background: white;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #342BE2;
+    box-shadow: 0 0 0 3px rgba(52, 43, 226, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Кнопки действий */
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.cancel-btn,
+.submit-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.cancel-btn {
+    background: white;
+    border: 1px solid #eef0f5;
+    color: #8b8f9e;
+}
+
+.cancel-btn:hover {
+    background: #f8f9ff;
+    border-color: #d4d4d4;
+}
+
+.submit-btn {
+    background: #342BE2;
+    border: none;
+    color: white;
+}
+
+.submit-btn:hover:not(:disabled) {
+    background: #4a42e5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(52, 43, 226, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Адаптивность */
+@media (max-width: 640px) {
+    .notification-modal-content {
+        width: 95%;
+        margin: 16px;
+    }
+    
+    .notification-modal-header,
+    .notification-modal-body {
+        padding: 16px 20px;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px 0;
+    }
+    
+    .detail-label {
+        font-size: 12px;
+    }
+    
+    .detail-value {
+        text-align: left;
+        max-width: 100%;
+        font-size: 13px;
+    }
+    
+    .priority-value {
+        align-self: flex-start;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .cancel-btn,
+    .submit-btn {
+        width: 100%;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

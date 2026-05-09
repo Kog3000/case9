@@ -1,31 +1,66 @@
-/* Notifications.css */
+/* src/Header/Notifications.css */
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
 
 /* Стили для колокольчика и бейджа */
-.notifications-container {
+.bellIcon {
     position: relative;
     cursor: pointer;
     display: flex;
     align-items: center;
 }
 
-.bell-icon {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    margin-right: 30px;
-}
-
 .bellImage {
     width: 21px;
     height: 21px;
     opacity: 0.7;
-    margin-right: 15px;
     object-fit: contain;
     transition: transform 0.2s ease;
+    cursor: pointer;
 }
 
-.bell-image:hover {
+.bellImage:hover {
     transform: scale(1.1);
+    opacity: 1;
 }
 
 .notification-badge {
@@ -54,26 +89,25 @@
     right: 0;
     width: 380px;
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    border: 1px solid #eef0f5;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     overflow: hidden;
-    animation: slideDown 0.2s ease;
+    animation: slideDown 0.3s ease;
 }
 
 .notifications-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border-bottom: 1px solid #eef0f5;
     background: #f8f9ff;
 }
 
 .notifications-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: #1a1f36;
 }
@@ -87,12 +121,13 @@
 .mark-all-read-btn {
     background: none;
     border: none;
-    font-size: 12px;
+    font-size: 13px;
     color: #342BE2;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 500;
 }
 
 .mark-all-read-btn:hover {
@@ -102,16 +137,16 @@
 .close-modal-btn {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 24px;
     color: #8b8f9e;
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.2s;
 }
 
@@ -124,6 +159,18 @@
 .notifications-list {
     max-height: 400px;
     overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Скрываем скроллбар */
+.notifications-list::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}
+
+.notifications-list {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 /* Элемент уведомления */
@@ -134,7 +181,8 @@
     padding: 14px 20px;
     border-bottom: 1px solid #eef0f5;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    position: relative;
 }
 
 .notification-item:hover {
@@ -143,10 +191,20 @@
 
 .notification-item.unread {
     background: #f0f1ff;
+    border-left: 3px solid #342BE2;
 }
 
 .notification-item.unread:hover {
     background: #e8e9ff;
+}
+
+.notification-item.solved {
+    background: #f0fdf4;
+    opacity: 0.8;
+}
+
+.notification-item.solved .notification-dot {
+    background: #10b981;
 }
 
 .notification-dot {
@@ -171,6 +229,7 @@
     color: #1a1f36;
     margin-bottom: 4px;
     line-height: 1.4;
+    font-weight: 500;
 }
 
 .notification-time {
@@ -178,9 +237,46 @@
     color: #8b8f9e;
 }
 
+/* Стили для приоритетов */
+.notification-priority {
+    font-size: 11px;
+    margin-top: 4px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+}
+
+.notification-priority.priority-high {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.notification-priority.priority-medium {
+    color: #f39c12;
+    background-color: rgba(243, 156, 18, 0.1);
+}
+
+.notification-priority.priority-low {
+    color: #2ecc71;
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+.notification-solved-badge {
+    font-size: 10px;
+    color: #10b981;
+    background: #dcfce7;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
 /* Пустое состояние */
 .no-notifications {
-    padding: 40px 20px;
+    padding: 60px 40px;
     text-align: center;
 }
 
@@ -197,26 +293,35 @@
 
 /* Подвал модального окна */
 .notifications-footer {
-    padding: 12px 20px;
+    padding: 16px 20px;
     border-top: 1px solid #eef0f5;
     background: #f8f9ff;
 }
 
 .clear-all-btn {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     background: white;
     border: 1px solid #ef4444;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #ef4444;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s;
 }
 
 .clear-all-btn:hover {
     background: #ef4444;
     color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }
 
+/* Адаптивность */
+@media (max-width: 640px) {
+    .notifications-modal {
+        width: 90%;
+        right: -100px;
+    }
+}

@@ -13,6 +13,76 @@ const STORAGE_KEYS = {
     USER_AVATAR: 'app_user_avatar'
 }
 
+// testNotifications.js
+export const testNotifications = [
+    {
+        id: 1,
+        title: "Техническая проблема",
+        problemType: "technical",
+        priority: "high",
+        description: "Не работает сканер штрих-кодов на посту приема заказов. Ошибка при подключении к базе данных.",
+        time: "5 минут назад",
+        operatorName: "Иван Иванов",
+        operatorId: "OP-001",
+        read: false,
+        solved: false
+    },
+    {
+        id: 2,
+        title: "Проблема с заказом",
+        problemType: "order",
+        priority: "high",
+        description: "Клиент не может получить заказ #12345 из-за ошибки в системе. Заказ завис в статусе 'доставляется' уже 3 дня.",
+        time: "15 минут назад",
+        operatorName: "Мария Петрова",
+        operatorId: "OP-002",
+        read: false,
+        solved: false
+    },
+    {
+        id: 3,
+        title: "Конфликт с клиентом",
+        problemType: "client",
+        priority: "medium",
+        description: "Клиент отказывается оплачивать заказ, утверждает что товар поврежден. Требуется вмешательство супервайзера.",
+        time: "1 час назад",
+        operatorName: "Алексей Смирнов",
+        operatorId: "OP-003",
+        read: false,
+        solved: false
+    },
+    {
+        id: 4,
+        title: "Неисправность оборудования",
+        problemType: "equipment",
+        priority: "low",
+        description: "Принтер чеков печатает бледно, требуется замена картриджа или ремонт.",
+        time: "2 часа назад",
+        operatorName: "Елена Козлова",
+        operatorId: "OP-004",
+        read: true,
+        solved: false
+    },
+    {
+        id: 5,
+        title: "Другая проблема",
+        problemType: "other",
+        priority: "medium",
+        description: "Не хватает расходных материалов (пакеты, скотч) для упаковки заказов.",
+        time: "3 часа назад",
+        operatorName: "Дмитрий Новиков",
+        operatorId: "OP-005",
+        read: true,
+        solved: true,
+        solution: {
+            text: "Выданы дополнительные расходные материалы со склада",
+            action: "fix",
+            timestamp: "2024-01-15T10:30:00Z",
+            resolvedBy: "Супервайзер"
+        }
+    }
+];
+
 export default function Header({ onPageChange, currentPage, userName, userData, onLogout, onUserUpdate }) {
     const [now, setNow] = useState(new Date())
     const [showProfileModal, setShowProfileModal] = useState(false)
@@ -331,7 +401,7 @@ export default function Header({ onPageChange, currentPage, userName, userData, 
                     <span className='leftTwo2'>Смена: 9:00 – 21:00</span>
                 )}
                 <div className='compactRight'>
-                    <Notifications className='notif-bell' notifications={[]} />
+                    <Notifications className='notif-bell' notifications={testNotifications} />
                     <div className='user-info-wrapper' onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
                         <div className='avatar'>
                             <img className='image' src={finalAvatar} alt='avatar' />
