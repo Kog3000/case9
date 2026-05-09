@@ -264,14 +264,33 @@
 }
 
 .notification-solved-badge {
-    font-size: 10px;
-    color: #10b981;
-    background: #dcfce7;
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-top: 6px;
+    font-size: 11px;
+    margin-top: 4px;
     font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.notification-solved-badge {
+    margin-left: 5px;
+    font-size: 11px;
+    margin-top: 4px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+    color: #2ecc71;
+    background-color: rgba(46, 204, 113, 0.1);
+}
+
+/* Если хотите добавить иконку как у приоритетов */
+.notification-solved-badge::before {
+    margin-right: 4px;
 }
 
 /* Пустое состояние */

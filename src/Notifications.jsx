@@ -131,7 +131,7 @@ export default function Notifications({ notifications: initialNotifications = []
                                                 </div>
                                             )}
                                             {notif.solved && (
-                                                <div className="notification-solved-badge">✅ Решено</div>
+                                                <div className="notification-solved-badge">Решено</div>
                                             )}
                                         </div>
                                     </div>
