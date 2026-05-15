@@ -68,3 +68,103 @@ export async function createOperatorNotification({ problemType, priority, descri
 
     return await response.json();
 }
+
+export async function fetchSupervisorNotifications() {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/supervisor/all_notifications`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Ошибка загрузки уведомлений: HTTP ${response.status}`;
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch {
+            // если backend не вернул JSON
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}
+
+export async function changeNotificationStatus(notificationId, problemSolution) {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/supervisor/change_status_notification/${notificationId}`,
+        {
+            method: 'PATCH',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                problem_solution: problemSolution
+            })
+        }
+    );
+
+    if (!response.ok) {
+        let errorMessage = `Ошибка изменения статуса уведомления: HTTP ${response.status}`;
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch {
+            // если backend не вернул JSON
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}
+
+export async function fetchOperatorCompletedNotifications() {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/operator/notifications?status_notification=completed`,
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    if (!response.ok) {
+        let errorMessage = `Ошибка загрузки уведомлений оператора: HTTP ${response.status}`;
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch {
+            // если backend не вернул JSON
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}

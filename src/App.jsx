@@ -5,7 +5,6 @@ import './App.css';
 import OperatorPage from './OperatorPage/OperatorPage';
 import RegisterPage from './RegisterPage/RegisterPage';
 import SupervisorPage from './SupervisorPage/SupervisorPage';
-import AnalystPage from './AnalystPage';
 import { useAuth } from './Context/AuthContext';
 import { fetchUserProfile, clearAllUserData } from './Api/userService';
 

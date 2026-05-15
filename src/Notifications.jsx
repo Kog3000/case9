@@ -3,14 +3,116 @@ import { useState, useEffect, useRef } from 'react';
 import bellIcon from '../assets/bellp_icon.svg';
 import './Notifications.css';
 import NotificationModal from './NotificationModal';
+import {
+    fetchSupervisorNotifications,
+    fetchOperatorCompletedNotifications,
+    changeNotificationStatus
+} from './Api/notificationService';
 
-export default function Notifications({ notifications: initialNotifications = [] }) {
+
+export default function Notifications({ notifications: initialNotifications = [], userRole }) {
     const [showNotifications, setShowNotifications] = useState(false);
     const [notificationsList, setNotificationsList] = useState(initialNotifications);
     const [unreadCount, setUnreadCount] = useState(0);
     const [selectedNotification, setSelectedNotification] = useState(null);
     const [showProblemModal, setShowProblemModal] = useState(false);
     const notificationRef = useRef(null);
+
+    const problemTypesTitleMap = {
+    technical: 'Техническая проблема',
+    order: 'Проблема с заказом',
+    client: 'Конфликт с клиентом',
+    equipment: 'Неисправность оборудования',
+    other: 'Другая проблема'
+};
+
+const typeProblemMap = {
+    1: 'technical',
+    2: 'order', 
+    3: 'client',
+    4: 'equipment',
+    5: 'other'
+};
+
+const priorityMap = {
+    1: 'high',
+    2: 'medium',
+    3: 'low'
+};
+
+    const normalizeNotification = (notification) => {
+        const problemType =
+            typeProblemMap[notification.type_problem] ||
+            notification.problemType ||
+            notification.problem_type ||
+            notification.type ||
+            'other';
+
+        const priority =
+            priorityMap[notification.priority] ||
+            notification.priority ||
+            'medium';
+
+        const isSolved =
+            notification.solved ||
+            notification.status === 'completed';
+
+        return {
+            ...notification,
+            id: notification.id,
+            title:
+                notification.title ||
+                problemTypesTitleMap[problemType] ||
+                'Уведомление',
+            problemType,
+            priority,
+            description:
+                notification.description ||
+                notification.text ||
+                notification.message ||
+                '',
+            time:
+                notification.time ||
+                notification.timestamp ||
+                notification.created_at ||
+                '',
+            operatorName:
+                notification.operatorName ||
+                notification.operator_name ||
+                notification.operator?.name ||
+                '',
+            read: notification.read ?? false,
+            solved: isSolved,
+            status: isSolved ? 'completed' : notification.status,
+            problem_solution:
+                notification.problem_solution ||
+                notification.solution?.text ||
+                '',
+            solution_date:
+                notification.solution_date ||
+                notification.solution?.timestamp ||
+                ''
+        };
+    };
+    const loadNotifications = async () => {
+        try {
+            let data = [];
+
+            if (userRole === 'supervisor') {
+                data = await fetchSupervisorNotifications();
+            } else if (userRole === 'operator') {
+                data = await fetchOperatorCompletedNotifications();
+            }
+
+            setNotificationsList(data.map(normalizeNotification));
+        } catch (error) {
+            console.error('Ошибка загрузки уведомлений:', error);
+        }
+    };
+
+    useEffect(() => {
+        loadNotifications();
+    }, [userRole]);
 
     // Подсчет непрочитанных уведомлений
     useEffect(() => {
@@ -42,7 +144,7 @@ export default function Notifications({ notifications: initialNotifications = []
         );
         
         // Открываем модальное окно с проблемой
-        setSelectedNotification(notification);
+        setSelectedNotification({ ...notification, read: true });
         setShowProblemModal(true);
         setShowNotifications(false);
     };
@@ -63,17 +165,44 @@ export default function Notifications({ notifications: initialNotifications = []
         setSelectedNotification(null);
     };
 
-    const handleProblemSolved = (notificationId, solution) => {
-        setNotificationsList(prev => 
-            prev.map(notif => 
-                notif.id === notificationId 
-                    ? { ...notif, solved: true, solution: solution, status: 'resolved' } 
-                    : notif
-            )
-        );
-        handleCloseProblemModal();
-    };
+    const handleProblemSolved = async (notificationId, solution) => {
+        if (userRole !== 'supervisor') {
+            return;
+        }
 
+        try {
+            const updatedNotification = await changeNotificationStatus(
+                notificationId,
+                solution.text
+            );
+
+            setNotificationsList(prev => 
+                prev.map(notif => 
+                    notif.id === notificationId 
+                        ? normalizeNotification({
+                            ...notif,
+                            ...updatedNotification,
+                            read: true,
+                            solved: true,
+                            status: 'completed',
+                            problem_solution:
+                                updatedNotification.problem_solution ||
+                                solution.text,
+                            solution_date:
+                                updatedNotification.solution_date ||
+                                new Date().toISOString().split('T')[0],
+                            solution
+                        })
+                        : notif
+                )
+            );
+
+            handleCloseProblemModal();
+        } catch (error) {
+            console.error('Ошибка изменения статуса уведомления:', error);
+            alert(error.message || 'Не удалось изменить статус уведомления');
+        }
+    };
     return (
         <>
             <div className='bellIcon' style={{ position: 'relative', cursor: 'pointer' }} ref={notificationRef}>
