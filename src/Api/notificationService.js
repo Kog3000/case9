@@ -136,6 +136,38 @@ export async function changeNotificationStatus(notificationId, problemSolution) 
     return await response.json();
 }
 
+// Получить ВСЕ заявки оператора (без фильтрации по статусу)
+export async function fetchOperatorAllNotifications() {
+    const token = getToken();
+
+    if (!token) {
+        throw new Error('Не авторизован');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/operator/notifications`, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Ошибка загрузки уведомлений оператора: HTTP ${response.status}`;
+
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.detail || errorMessage;
+        } catch {
+            // если backend не вернул JSON
+        }
+
+        throw new Error(errorMessage);
+    }
+
+    return await response.json();
+}
+
+// Получить завершенные заявки оператора (оставляем для обратной совместимости)
 export async function fetchOperatorCompletedNotifications() {
     const token = getToken();
 
